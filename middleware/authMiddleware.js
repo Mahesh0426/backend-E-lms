@@ -35,7 +35,7 @@ export const authMiddleware = async (req, res, next) => {
       }
     }
 
-    throw new Error("Invalid token, unauthorized");
+    // throw new Error("Invalid token, unauthorized");
   } catch (error) {
     return buildErrorResponse(res, error.message || "Invalid token!!");
   }
