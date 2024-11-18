@@ -16,7 +16,6 @@ userRouter.post("/", async (req, res) => {
   try {
     // Hash password before saving
     const { password } = req.body;
-    console.log("req.body", req.body);
 
     const hashedPassword = hashPassword(password);
 
@@ -89,15 +88,11 @@ userRouter.post("/logout", authMiddleware, async (req, res) => {
     const { userEmail } = req.body;
     const { authorization } = req.headers;
 
-    console.log("userEmail", userEmail);
-    console.log("authorization", authorization);
-
     // Remove session for the user
     const result = await deleteSession({
       token: authorization,
       userEmail: userEmail,
     });
-    console.log("result", result);
 
     // Use ternary operator to handle success or failure
     result
