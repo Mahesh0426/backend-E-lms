@@ -26,7 +26,8 @@ export const authMiddleware = async (req, res, next) => {
       if (sessionToken?._id) {
         const user = await findUserByEmail(decoded.email);
 
-        if ((user?._id && user?.role === "admin") || "user") {
+        // isprivate part missed
+        if ((user?._id && user?.role === "instructor") || "user") {
           user.password = undefined;
           req.userInfo = user;
 
