@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 8000;
 // CORS options
 const corsOptions = {
   origin: process.env.CLIENT_ROOT_URL,
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  methods: ["GET", "POST", "PATCH", "DELETE", "PUT"],
   allowedHeaders: [
     "Origin",
     "X-Requested-With",

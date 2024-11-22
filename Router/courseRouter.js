@@ -36,8 +36,8 @@ courseRouter.get("/:id", async (req, res) => {
       ? buildSuccessResponse(res, course, "Course fetched successfully!!")
       : buildErrorResponse(res, "Course not found!!");
   } catch (error) {
-    console.error("Error while fetching course:", error);
-    return buildErrorResponse(res, "Error while fetching course!", 500);
+    console.error("Error while fetching a course:", error);
+    return buildErrorResponse(res, "Error while fetching  a course!", 500);
   }
 });
 
@@ -56,7 +56,7 @@ courseRouter.post("/create", async (req, res) => {
 });
 
 // Update course details by ID | PATCH | private Route
-courseRouter.patch("/update/:id", async (req, res) => {
+courseRouter.put("/update/:id", async (req, res) => {
   const courseId = req.params.id;
   const updatedCourse = req.body;
 
