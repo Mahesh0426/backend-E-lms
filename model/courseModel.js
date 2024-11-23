@@ -18,6 +18,15 @@ export const deleteCourse = (_id) => {
   return courseSchema.findByIdAndDelete(_id);
 };
 
+// DELETE LECTURE
+export const deleteLecture = (courseId, lectureId) => {
+  return courseSchema.findByIdAndUpdate(
+    courseId,
+    { $pull: { curriculum: { _id: lectureId } } },
+    { new: true } // Return the updated document
+  );
+};
+
 // GET Course BY ID
 export const getCourse = (_id) => {
   return courseSchema.findById(_id);
