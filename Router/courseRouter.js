@@ -24,7 +24,7 @@ courseRouter.get("/get", async (req, res) => {
       : buildSuccessResponse(res, {}, "No courses found!!");
   } catch (error) {
     console.error("Error while fetching courses:", error);
-    return buildErrorResponse(res, "Error while fetching courses!", 500);
+    return buildErrorResponse(res, "Error while fetching courses!");
   }
 });
 

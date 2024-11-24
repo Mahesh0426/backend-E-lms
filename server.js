@@ -5,6 +5,7 @@ import { connectToMongoDb } from "./config/dbConfig.js";
 import userRouter from "./Router/useRouter.js";
 import uploadRouter from "./Router/uploadRouter.js";
 import courseRouter from "./Router/courseRouter.js";
+import studentCourseRouter from "./Router/studentCourseRouter.js";
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -39,6 +40,7 @@ connectToMongoDb();
 app.use("/api/user", userRouter);
 app.use("/api/upload", uploadRouter);
 app.use("/api/course", courseRouter);
+app.use("/api/studentCourse", studentCourseRouter);
 
 // start server
 app.listen(PORT, (error) => {

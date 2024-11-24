@@ -1,6 +1,6 @@
 //This file talks to database | table
 
-import userSchema from "../Schema/useSchema.js";
+import userSchema from "../Schema/userSchema.js";
 
 // create a user
 export const createUser = (userObj) => {
