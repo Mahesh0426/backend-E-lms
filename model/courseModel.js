@@ -23,7 +23,7 @@ export const deleteLecture = (courseId, lectureId) => {
   return courseSchema.findByIdAndUpdate(
     courseId,
     { $pull: { curriculum: { _id: lectureId } } },
-    { new: true } // Return the updated document
+    { new: true }
   );
 };
 
@@ -32,9 +32,14 @@ export const getCourse = (_id) => {
   return courseSchema.findById(_id);
 };
 
-// GET ALL Courses
+// GET ALL Courses for instructor
 export const getCourses = (filter) => {
   return courseSchema.find(filter);
+};
+
+// GET ALL Courses for student
+export const getStudentCourses = ({ filters, sortParam }) => {
+  return courseSchema.find(filters).sort(sortParam);
 };
 
 // GET COURSE BY slug
