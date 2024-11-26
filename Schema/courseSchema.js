@@ -72,7 +72,7 @@ const courseSchema = new mongoose.Schema(
       {
         studentId: String,
         studentName: String,
-        studentEmail: { type: String, required: true },
+        studentEmail: String,
         paidAmount: Number,
         enrolledAt: { type: Date, default: Date.now },
       },

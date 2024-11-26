@@ -1,7 +1,6 @@
-// CREATE A COURSE
-
 import courseSchema from "../Schema/courseSchema.js";
 
+// CREATE A COURSE
 export const createCourse = (courseObj) => {
   return courseSchema(courseObj).save();
 };

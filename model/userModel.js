@@ -20,3 +20,7 @@ export const updateUser = (filter, updatedUser) => {
 export const findUserByEmail = (userEmail) => {
   return userSchema.findOne({ userEmail });
 };
+//find user by id
+export const findUserById = (_id) => {
+  return userSchema.findById(_id);
+};
