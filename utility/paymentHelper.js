@@ -1,4 +1,4 @@
-import MyCourses from "../Schema/myCoursesSchema.js";
+import MyCourses from "../Schema/studentSchema/myCoursesSchema.js";
 
 // Helper function to create PayPal payment JSON configuration
 export const createPaypalPaymentConfig = (

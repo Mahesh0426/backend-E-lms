@@ -70,10 +70,10 @@ const courseSchema = new mongoose.Schema(
     },
     students: [
       {
-        studentId: String,
-        studentName: String,
-        studentEmail: String,
-        paidAmount: Number,
+        studentId: { type: String, required: true },
+        studentName: { type: String, required: true },
+        studentEmail: { type: String, required: true },
+        paidAmount: { type: Number, required: true },
         enrolledAt: { type: Date, default: Date.now },
       },
     ],
@@ -84,5 +84,6 @@ const courseSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+courseSchema.index({ _id: 1, "students.studentId": 1 }, { unique: true });
 
 export default mongoose.model("Course", courseSchema);

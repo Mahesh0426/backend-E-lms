@@ -5,9 +5,11 @@ import { connectToMongoDb } from "./config/dbConfig.js";
 import userRouter from "./Router/useRouter.js";
 import uploadRouter from "./Router/uploadRouter.js";
 import courseRouter from "./Router/courseRouter.js";
-import studentCourseRouter from "./Router/studentCourseRouter.js";
-import orderRouter from "./Router/orderRouter.js";
-import myCourseRouter from "./Router/myCoursesRouter.js";
+
+import courseProgressRouter from "./Router/studentRouter/courseProgressRouter.js";
+import myCourseRouter from "./Router/studentRouter/myCoursesRouter.js";
+import orderRouter from "./Router/studentRouter/orderRouter.js";
+import studentCourseRouter from "./Router/studentRouter/studentCourseRouter.js";
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -45,6 +47,7 @@ app.use("/api/course", courseRouter);
 app.use("/api/studentCourse", studentCourseRouter);
 app.use("/api/order", orderRouter);
 app.use("/api/student/my-courses", myCourseRouter);
+app.use("/api/student/course-progress", courseProgressRouter);
 
 // start server
 app.listen(PORT, (error) => {
