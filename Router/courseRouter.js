@@ -56,7 +56,7 @@ courseRouter.post("/create", async (req, res) => {
   }
 });
 
-// Update course details by ID | PATCH | private Route
+// Update course details by ID | PUT | private Route
 courseRouter.put("/update/:id", async (req, res) => {
   const courseId = req.params.id;
   const updatedCourse = req.body;

@@ -84,6 +84,6 @@ const courseSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-courseSchema.index({ _id: 1, "students.studentId": 1 }, { unique: true });
+// courseSchema.index({ _id: 1, "students.studentId": 1 }, { unique: true });
 
 export default mongoose.model("Course", courseSchema);

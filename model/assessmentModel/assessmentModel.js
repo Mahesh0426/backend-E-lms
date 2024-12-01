@@ -1,4 +1,5 @@
 import assignmentSchema from "../../Schema/assessmentSchema/assessmentSchema.js";
+import assignmentSubmissionSchema from "../../Schema/assessmentSchema/assignmentSubmissionSchema.js";
 // CREATE A Assignment
 export const createAssignment = (assignmentObj) => {
   return assignmentSchema(assignmentObj).save();
@@ -21,4 +22,21 @@ export const updateAssignmentStatus = (assignmentId, status) => {
 // find assignment by courseID
 export const getAssignmentByCourseId = (courseId) => {
   return assignmentSchema.find({ courseId });
+};
+
+//ASSIGNMENT SUBMITSSION model
+
+//create a assignment subbmission
+export const createAssignmentSubmission = (submissionObj) => {
+  return assignmentSubmissionSchema(submissionObj).save();
+};
+
+//get all submitted assignment
+export const getAllSubmittedAssignmentList = (filter) => {
+  return assignmentSubmissionSchema.find(filter);
+};
+
+//get submitted assignment by id
+export const getSubmittedAssignmentbyId = (id) => {
+  return assignmentSubmissionSchema.findOne({ assignmentId: id });
 };
