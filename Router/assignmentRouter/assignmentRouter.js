@@ -13,6 +13,9 @@ import {
   getSubmittedAssignmentbyId,
   updateAssignmentStatus,
 } from "../../model/assessmentModel/assessmentModel.js";
+import AssignmentSubmission from "../../Schema/assessmentSchema/assignmentSubmissionSchema.js";
+import mongoose from "mongoose";
+
 const assignmmentRouter = express.Router();
 
 // create a new assignmment | POST | private Route
@@ -87,7 +90,7 @@ assignmmentRouter.patch("/update-status/:id", async (req, res) => {
   }
 });
 
-//ASSIGNMENT SUBMITSSION
+//ASSIGNMENT SUBMITSSION / user
 
 //   create a  new assignment Submission | POST | | private Route
 assignmmentRouter.post("/create-submission", async (req, res) => {
@@ -111,9 +114,11 @@ assignmmentRouter.post("/create-submission", async (req, res) => {
 });
 
 // get  all assignments Submission list | GET | Public Route
-assignmmentRouter.get("/get-allSubmissions", async (req, res) => {
+assignmmentRouter.get("/get-allSubmissions/:id", async (req, res) => {
   try {
-    const assignmentSubmissions = await getAllSubmittedAssignmentList();
+    const { id } = req.params;
+
+    const assignmentSubmissions = await getAllSubmittedAssignmentList(id);
 
     assignmentSubmissions.length > 0
       ? buildSuccessResponse(
@@ -135,7 +140,7 @@ assignmmentRouter.get("/get-allSubmissions", async (req, res) => {
 assignmmentRouter.get("/get-submission/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    console.log(id);
+    console.log("Received submission ID:", id);
 
     const assignmentSubmission = await getSubmittedAssignmentbyId(id);
 
@@ -146,11 +151,51 @@ assignmmentRouter.get("/get-submission/:id", async (req, res) => {
     );
   } catch (error) {
     console.error("Error while fetching Assignment Submission:", error);
-    return buildErrorResponse(
-      res,
-      "Error while fetching Assignment Submission!"
-    );
   }
 });
+//  grade a submission | PATCH | private Route
+assignmmentRouter.patch(
+  "/grade-submission/:assignmentId/:studentId",
+  async (req, res) => {
+    try {
+      const { assignmentId, studentId } = req.params;
+      const { score, review, gradedBy } = req.body;
+
+      // Validate the score
+      if (score < 0) {
+        return res
+          .status(400)
+          .json({ message: "Score must be a non-negative number." });
+      }
+
+      // Find the submission by assignmentId and studentId
+      const submission = await AssignmentSubmission.findOne({
+        assignmentId,
+        studentId,
+      });
+      if (!submission) {
+        return res.status(404).json({ message: "Submission not found." });
+      }
+
+      // Update grading fields
+      submission.score = score;
+      submission.review = review || submission.review;
+      submission.gradingStatus = "Graded";
+      submission.gradingDate = new Date();
+      submission.gradedBy = gradedBy;
+
+      // Save the updated document
+      const updatedSubmission = await submission.save();
+
+      res.status(200).json({
+        message: "Submission graded successfully.",
+        submission: updatedSubmission,
+      });
+    } catch (error) {
+      console.error("Error while grading submission:", error);
+      res.status(500).json({ message: "Error while grading submission." });
+    }
+  }
+);
 
 export default assignmmentRouter;

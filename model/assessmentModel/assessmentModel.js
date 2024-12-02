@@ -32,11 +32,14 @@ export const createAssignmentSubmission = (submissionObj) => {
 };
 
 //get all submitted assignment
-export const getAllSubmittedAssignmentList = (filter) => {
-  return assignmentSubmissionSchema.find(filter);
+export const getAllSubmittedAssignmentList = (assignmentId) => {
+  return assignmentSubmissionSchema
+    .find({ assignmentId })
+    .populate("studentId", "userName userEmail")
+    .exec();
 };
 
 //get submitted assignment by id
 export const getSubmittedAssignmentbyId = (id) => {
-  return assignmentSubmissionSchema.findOne({ assignmentId: id });
+  return assignmentSubmissionSchema.findOne({ studentId: id });
 };
