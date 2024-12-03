@@ -31,9 +31,7 @@ quizRouter.get("/get", async (req, res) => {
   try {
     const quizzes = await getAllQuizesList();
 
-    quizzes.length > 0
-      ? buildSuccessResponse(res, quizzes, "Quizzes fetched successfully!")
-      : buildErrorResponse(res, "No quizzes found!");
+    buildSuccessResponse(res, quizzes, "Quizzes fetched successfully!");
   } catch (error) {
     console.error("Error while fetching quizzes:", error);
     return buildErrorResponse(res, "Error while fetching quizzes!");
