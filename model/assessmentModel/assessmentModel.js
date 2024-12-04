@@ -34,38 +34,26 @@ export const createAssignmentSubmission = (submissionObj) => {
 
 //get all submitted assignment | for tutor
 export const getAllSubmittedAssignmentList = (assignmentId) => {
-  return (
-    assignmentSubmissionSchema
-      .find({ assignmentId })
-      // .find({ assignmentId: new mongoose.Types.ObjectId(assignmentId) })
-      .populate({
-        path: "studentId",
-        select: " userName userEmail",
-      })
-      .populate({
-        path: "assignmentId",
-        select: "title description  maxScore",
-      })
-      .lean()
-  ); // Convert to plain JavaScript object
+  return assignmentSubmissionSchema
+    .find({ assignmentId })
+    .populate({
+      path: "studentId",
+      select: " userName userEmail",
+    })
+    .populate({
+      path: "assignmentId",
+      select: "title description  maxScore",
+    })
+    .populate({
+      path: "gradedBy",
+      select: "userName userEmail",
+    })
+    .lean(); // Convert to plain JavaScript object
 };
-
-//get submitted assignment by id | for student
-// export const getSubmittedAssignmentbyId = (id) => {
-//   return assignmentSubmissionSchema.findOne({
-//     // studentId: new mongoose.Types.ObjectId(id),
-//     studentId: id,
-//   });
-// };
 
 //get submitted assignment by student id | for student
 export const getSubmittedAssignmentbyId = async (studentId) => {
   return await assignmentSubmissionSchema.findOne({ studentId });
-  // .populate({
-  //   path: "assignmentId",
-  //   select: "title description courseName dueDate maxScore",
-  // })
-  // .lean(); // Convert to plain JavaScript object
 };
 
 // Find a submission by assignmentId and studentId

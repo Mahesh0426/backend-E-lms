@@ -26,8 +26,11 @@ export const authMiddleware = async (req, res, next) => {
       if (sessionToken?._id) {
         const user = await findUserByEmail(decoded.email);
 
+        if (!user?._id) {
+          return buildErrorResponse(res, "User not found", 401);
+        }
         // isprivate part missed
-        if ((user?._id && user?.role === "instructor") || "user") {
+        if (user?._id && (user.role === "instructor" || user.role === "user")) {
           user.password = undefined;
           req.userInfo = user;
 

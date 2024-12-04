@@ -159,20 +159,16 @@ assignmmentRouter.get("/get-allSubmissions/:assignmentId", async (req, res) => {
   }
 });
 
-//  grade a submission | PATCH | private Route
+//  update score and review  by tutor  | PATCH | private Route
 assignmmentRouter.patch(
   "/grade-submission/:assignmentId/:studentId",
   async (req, res) => {
     try {
       const { assignmentId, studentId } = req.params;
       const { score, review, gradedBy } = req.body;
-      console.log("Received assignmentId:", assignmentId);
 
       // Find the submission by assignmentId and studentId
       const submission = await findSubmissionByIds(assignmentId, studentId);
-      if (!submission) {
-        return buildErrorResponse(res, "No submission found");
-      }
 
       // Update grading fields
       submission.score = score;
