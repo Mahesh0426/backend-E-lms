@@ -52,8 +52,11 @@ export const getAllSubmittedAssignmentList = (assignmentId) => {
 };
 
 //get submitted assignment by student id | for student
-export const getSubmittedAssignmentbyId = async (studentId) => {
-  return await assignmentSubmissionSchema.findOne({ studentId });
+export const getSubmittedAssignmentbyId = async (assignmentId, studentId) => {
+  return await assignmentSubmissionSchema.findOne({
+    assignmentId,
+    studentId: new mongoose.Types.ObjectId(studentId),
+  });
 };
 
 // Find a submission by assignmentId and studentId

@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import quizSchema from "../../Schema/quiz/quizSchema.js";
 import quizSubmissionSchema from "../../Schema/quiz/quizSubmissionSchema.js";
 
@@ -28,14 +29,25 @@ export const submitQuiz = (answerObj) => {
 };
 
 //get submitted quiz by student Id
-export const getSubmittedQuiz = (studentId, quizSubmissionId) => {
-  return quizSubmissionSchema.findOne({
-    _id: quizSubmissionId,
-    studentId: studentId,
-  });
+export const getSubmittedQuiz = (quizId, studentId) => {
+  return quizSubmissionSchema
+    .findOne({
+      quizId,
+      studentId: new mongoose.Types.ObjectId(studentId),
+    })
+    .lean();
 };
 
 //get all submitted quiz by quizId | for tutor
 export const getallSubmittedQuiz = (quizId) => {
-  return quizSubmissionSchema.find({ quizId });
+  return quizSubmissionSchema
+    .find({ quizId })
+    .populate({
+      path: "studentId",
+      select: "userEmail",
+    })
+    .populate({
+      path: "quizId",
+      select: "title ",
+    });
 };

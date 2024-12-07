@@ -128,16 +128,16 @@ quizRouter.post("/submit", async (req, res) => {
 
 // fetch  sumbitted quiz by student ID | GET | private Route
 quizRouter.get(
-  "/get-quiz/:studentId/:quizSubmissionId",
+  "/get-quiz/:quizId/:studentId",
   authMiddleware,
   async (req, res) => {
     try {
-      const { quizSubmissionId } = req.params;
+      const { quizId } = req.params;
 
       //auth middleware
       const studentId = req.userInfo._id;
 
-      const submittedQuiz = await getSubmittedQuiz(studentId, quizSubmissionId);
+      const submittedQuiz = await getSubmittedQuiz(quizId, studentId);
 
       buildSuccessResponse(
         res,

@@ -16,6 +16,7 @@ import {
 } from "../../model/assessmentModel/assessmentModel.js";
 import AssignmentSubmission from "../../Schema/assessmentSchema/assignmentSubmissionSchema.js";
 import mongoose from "mongoose";
+import { authMiddleware } from "../../middleware/authMiddleware.js";
 
 const assignmmentRouter = express.Router();
 
@@ -112,22 +113,32 @@ assignmmentRouter.post("/create-submission", async (req, res) => {
   }
 });
 
-// get  particular submitted  assignment by student id  | GET | public Route
-assignmmentRouter.get("/get-submission/:studentId", async (req, res) => {
-  try {
-    const { studentId } = req.params;
+// get  particular submitted  assignment by studentId and assignmentId  | GET | public Route
+assignmmentRouter.get(
+  "/get-submission/:assignmentId/:studentId",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const { assignmentId } = req.params;
 
-    const assignmentSubmission = await getSubmittedAssignmentbyId(studentId);
+      //auth middleware
+      const studentId = req.userInfo._id;
 
-    buildSuccessResponse(
-      res,
-      assignmentSubmission,
-      "Assignment Submission fetched successfully!"
-    );
-  } catch (error) {
-    console.error("Error while fetching Assignment a Submission:", error);
+      const assignmentSubmission = await getSubmittedAssignmentbyId(
+        assignmentId,
+        studentId
+      );
+
+      buildSuccessResponse(
+        res,
+        assignmentSubmission,
+        "Assignment Submission fetched successfully!"
+      );
+    } catch (error) {
+      console.error("Error while fetching Assignment a Submission:", error);
+    }
   }
-});
+);
 
 // get  all assignments Submission list by assignment ID | GET | Public Route
 assignmmentRouter.get("/get-allSubmissions/:assignmentId", async (req, res) => {
