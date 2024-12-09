@@ -22,6 +22,7 @@ orderRouter.post("/create", async (req, res) => {
     const existingOrder = await Order.findOne({
       userId: orderDetails.userId,
       courseId: orderDetails.courseId,
+      orderStatus: orderDetails.orderStatus,
     });
 
     if (existingOrder) {
@@ -44,6 +45,7 @@ orderRouter.post("/create", async (req, res) => {
 
       // Create and save a new order record
       const newlyCreatedCourseOrder = new Order(orderDetails);
+
       await newlyCreatedCourseOrder.save();
 
       // Get approval URL from PayPal to redirect user

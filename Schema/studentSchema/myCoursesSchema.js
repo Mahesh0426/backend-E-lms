@@ -1,22 +1,5 @@
 import mongoose from "mongoose";
 
-// const MyCoursesSchema = new mongoose.Schema({
-//   userId: String,
-//   courses: [
-//     {
-//       courseId: String,
-//       title: String,
-//       instructorId: String,
-//       instructorEmail: String,
-//       instructorName: String,
-//       dateofPurschase: Date,
-//       courseImage: String,
-//     },
-//   ],
-// });
-
-// export default mongoose.model("MyCourses", MyCoursesSchema);
-
 const MyCoursesSchema = new mongoose.Schema({
   userId: { type: String, required: true },
   courses: [
@@ -32,5 +15,5 @@ const MyCoursesSchema = new mongoose.Schema({
   ],
 });
 
-// MyCoursesSchema.index({ userId: 1, "courses.courseId": 1 }, { unique: true });
+MyCoursesSchema.index({ userId: 1, "courses.courseId": 1 }, { unique: true });
 export default mongoose.model("MyCourses", MyCoursesSchema);
