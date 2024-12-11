@@ -12,6 +12,11 @@ const assignmentSubmissionSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    courseId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Course",
+      required: true,
+    },
 
     content: {
       type: String,
@@ -32,28 +37,30 @@ const assignmentSubmissionSchema = new mongoose.Schema(
       enum: ["Graded", "Not graded"],
       default: "Not graded",
     },
-
-    gradedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+    maxScore: {
+      type: Number,
+      required: true,
     },
     score: {
       type: Number,
     },
-
+    gradedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
     review: {
       type: String,
     },
     gradingDate: {
       type: Date,
-      default: Date.now,
+      // default: Date.now,
     },
   },
   {
     timestamps: true,
   }
 );
-// // Compound index to ensure unique student submission per assignment
+// Compound index to ensure unique student submission per assignment
 // assignmentSubmissionSchema.index(
 //   { assignmentId: 1, studentId: 1 },
 //   { unique: true }

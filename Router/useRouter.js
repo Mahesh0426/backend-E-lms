@@ -1,5 +1,6 @@
 import express from "express";
-import { createUser, findUserByEmail } from "../model/userModel.js";
+import { v4 as uuidv4 } from "uuid";
+import { createUser, findUserByEmail, updateUser } from "../model/userModel.js";
 import { comparePassword, hashPassword } from "../utility/bcryptHelper.js";
 import {
   buildErrorResponse,
@@ -7,7 +8,8 @@ import {
 } from "../utility/reponseHelper.js";
 import { generateJWTs } from "../utility/jwtHelper.js";
 import { authMiddleware, refreshAuth } from "../middleware/authMiddleware.js";
-import { deleteSession } from "../model/sessionModel.js";
+import { createSession, deleteSession } from "../model/sessionModel.js";
+import { sendResetPasswordLinkEmail } from "../utility/nodemailerHelper.js";
 
 const userRouter = express.Router();
 
@@ -80,7 +82,6 @@ userRouter.get("/", authMiddleware, async (req, res) => {
 
 // GET NEW ACCESS TOKEN | GET | PRIVATE ROUTE
 userRouter.get("/accessjwt", refreshAuth);
-export default userRouter;
 
 //LOGOUT USER | POST | PRIVATE Route
 userRouter.post("/logout", authMiddleware, async (req, res) => {
@@ -102,3 +103,78 @@ userRouter.post("/logout", authMiddleware, async (req, res) => {
     buildErrorResponse(res, error.message);
   }
 });
+
+//FORGET PASSWORD | POST | Public Route
+userRouter.post("/forget-password", async (req, res) => {
+  try {
+    // find if the user exists
+    const user = await findUserByEmail(req.body.email);
+
+    if (!user?._id) {
+      return buildErrorResponse(res, "User does not exists. Please signup!!");
+    }
+
+    if (user?._id) {
+      // if user is created send a verification email
+      const secureID = uuidv4();
+
+      //   store this secure ID in session storage for that user
+      const newUserSession = await createSession({
+        userEmail: user.userEmail,
+        token: secureID,
+      });
+
+      if (newUserSession?._id) {
+        // create verification link and send verification email
+        const resetUrl = `${process.env.CLIENT_ROOT_URL}/change-password?e=${user.userEmail}&id=${secureID}`;
+
+        // send the email
+        sendResetPasswordLinkEmail(user, resetUrl);
+      }
+    }
+    user?._id
+      ? buildSuccessResponse(
+          res,
+          {},
+          "Check your inbox/spam to reset your password"
+        )
+      : buildErrorResponse(res, "Could not send  mail to your inbox");
+  } catch (error) {
+    console.log(error.message);
+    buildErrorResponse(res, error.message);
+  }
+});
+
+//   CHANGE PASSWORD | PATCH
+userRouter.patch("/change-password", async (req, res) => {
+  try {
+    const { formData, token, userEmail } = req.body;
+
+    // check if the user exists
+    const user = await findUserByEmail(userEmail);
+
+    // check if the token exists
+    const result = await deleteSession({ token, userEmail });
+
+    if (user && result) {
+      const { password } = formData;
+      const encryptPassword = hashPassword(password);
+      const updatePassword = await updateUser(
+        { userEmail: userEmail },
+        { password: encryptPassword }
+      );
+      buildSuccessResponse(
+        res,
+        updatePassword,
+        "Password Reset successfully!!"
+      );
+    } else {
+      buildErrorResponse(res, "Token expired or invalid. Please try again");
+    }
+  } catch (error) {
+    console.error("Error resetting password:", error);
+    buildErrorResponse(res, "Can not reset password. Please try again");
+  }
+});
+
+export default userRouter;

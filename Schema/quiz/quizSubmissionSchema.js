@@ -1,40 +1,3 @@
-// import mongoose from "mongoose";
-
-// const quizSubmissionSchema = new mongoose.Schema(
-//   {
-//     quizId: {
-//       type: mongoose.Schema.Types.ObjectId,
-//       ref: "Quiz",
-//       required: true,
-//     },
-//     userId: {
-//       type: mongoose.Schema.Types.ObjectId,
-//       ref: "User",
-//       required: true,
-//     },
-//     userName: { type: String },
-//     submissionStatus: {
-//       type: String,
-//       enum: ["Completed", "Not Completed"],
-//       default: "Completed",
-//     },
-//     answers: [
-//       {
-//         questionText: {
-//           type: String,
-//           required: true,
-//         },
-//         answer: { type: String, required: true },
-//       },
-//     ],
-//     submittedAt: { type: Date, default: Date.now },
-//   },
-//   {
-//     timestamps: true,
-//   }
-// );
-
-// export default mongoose.model("QuizSubmission", quizSubmissionSchema);
 import mongoose from "mongoose";
 
 const quizSubmissionSchema = new mongoose.Schema(
@@ -42,6 +5,16 @@ const quizSubmissionSchema = new mongoose.Schema(
     quizId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Quiz",
+      required: true,
+    },
+    courseId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Course",
+      required: true,
+    },
+    instructorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: true,
     },
     studentId: {
@@ -94,11 +67,6 @@ const quizSubmissionSchema = new mongoose.Schema(
     submittedAt: {
       type: Date,
       default: Date.now,
-    },
-    courseId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Course",
-      required: true,
     },
   },
   {

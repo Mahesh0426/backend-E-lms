@@ -86,6 +86,7 @@ quizRouter.post("/submit", async (req, res) => {
       studentId,
       studentName,
       courseId,
+      instructorId,
       submissionStatus,
       answers,
       totalQuestions,
@@ -104,6 +105,7 @@ quizRouter.post("/submit", async (req, res) => {
       studentId,
       studentName,
       courseId,
+      instructorId,
       submissionStatus: submissionStatus || "Completed",
       answers: answers.map((answer) => ({
         questionText: answer.questionText,
