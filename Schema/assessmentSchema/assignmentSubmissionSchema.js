@@ -53,7 +53,6 @@ const assignmentSubmissionSchema = new mongoose.Schema(
     },
     gradingDate: {
       type: Date,
-      // default: Date.now,
     },
   },
   {

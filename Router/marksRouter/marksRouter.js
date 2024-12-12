@@ -39,7 +39,7 @@ marksRouter.get("/get-all-marks/instructor/:instructorId", async (req, res) => {
         studentEmail: submission.studentId.userEmail,
         courseTitle: submission.courseId.title,
         score: submission.score || 0,
-        maxScore: submission.maxScore || 0,
+        maxScore: submission.maxScore,
       })),
       quizzes: quizSubmissions.map((submission) => ({
         studentName: submission.studentId.userName,

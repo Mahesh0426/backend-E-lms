@@ -140,7 +140,7 @@ assignmmentRouter.get(
   }
 );
 
-// get  all assignments Submission list by assignment ID | GET | Public Route
+// get  all assignments Submission list by assignment ID | GET | Public Route |  for  tutor
 assignmmentRouter.get("/get-allSubmissions/:assignmentId", async (req, res) => {
   try {
     const { assignmentId } = req.params;
@@ -203,4 +203,33 @@ assignmmentRouter.patch(
   }
 );
 
+// edit assignment score |PATCH|  for tutor
+assignmmentRouter.patch(
+  "/edit-score/:assignmentId/:studentId",
+  async (req, res) => {
+    try {
+      const { assignmentId, studentId } = req.params;
+      const { score, review } = req.body;
+
+      // Find the submission by assignmentId and studentId
+      const submission = await findSubmissionByIds(assignmentId, studentId);
+
+      // Update score field
+      submission.score = score;
+      submission.review = review || submission.review;
+
+      // Save the updated document using the saveSubmission function
+      const updatedSubmission = await saveSubmission(submission);
+
+      buildSuccessResponse(
+        res,
+        updatedSubmission,
+        "Score updated successfully"
+      );
+    } catch (error) {
+      console.error("Error while editing score:", error);
+      buildErrorResponse(res, "Error while saving submission");
+    }
+  }
+);
 export default assignmmentRouter;
