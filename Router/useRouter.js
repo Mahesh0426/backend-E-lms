@@ -80,6 +80,26 @@ userRouter.get("/", authMiddleware, async (req, res) => {
   }
 });
 
+// UPDATE USER | PATCH | PRIVATE
+userRouter.patch("/update", authMiddleware, async (req, res) => {
+  try {
+    // Destructure the _id and other formdata from req.body
+    const { _id, ...updatedUser } = req.body;
+    console.log(req.body);
+
+    // update user in db
+    const user = await updateUser({ _id }, updatedUser);
+
+    // Check if the update was successful
+    user?._id
+      ? buildSuccessResponse(res, user, "User updated successfully")
+      : buildErrorResponse(res, "Could not update user");
+  } catch (error) {
+    console.error("Error updating user:", error);
+    buildErrorResponse(res, "Could not update user");
+  }
+});
+
 // GET NEW ACCESS TOKEN | GET | PRIVATE ROUTE
 userRouter.get("/accessjwt", refreshAuth);
 

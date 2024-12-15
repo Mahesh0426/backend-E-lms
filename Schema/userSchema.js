@@ -26,6 +26,22 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    phone: {
+      type: Number,
+    },
+    skillLevel: {
+      type: String,
+      enum: ["beginner", "intermediate", "advanced"],
+    },
+    learningGoals: {
+      type: String,
+      enum: ["Career Change", "Skill Improvement", "Personal Growth"],
+    },
+    primaryInterests: {
+      type: String,
+      enum: ["Business", "Technology", "Health", "Science", "Other"],
+      default: "Other",
+    },
   },
   {
     timestamps: true,

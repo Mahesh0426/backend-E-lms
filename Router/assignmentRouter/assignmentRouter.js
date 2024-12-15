@@ -14,7 +14,6 @@ import {
   saveSubmission,
   updateAssignmentStatus,
 } from "../../model/assessmentModel/assessmentModel.js";
-import AssignmentSubmission from "../../Schema/assessmentSchema/assignmentSubmissionSchema.js";
 import mongoose from "mongoose";
 import { authMiddleware } from "../../middleware/authMiddleware.js";
 
@@ -203,7 +202,7 @@ assignmmentRouter.patch(
   }
 );
 
-// edit assignment score |PATCH|  for tutor
+// edit assignment score | PATCH |  for tutor
 assignmmentRouter.patch(
   "/edit-score/:assignmentId/:studentId",
   async (req, res) => {
@@ -224,7 +223,7 @@ assignmmentRouter.patch(
       buildSuccessResponse(
         res,
         updatedSubmission,
-        "Score updated successfully"
+        "Grade updated successfully"
       );
     } catch (error) {
       console.error("Error while editing score:", error);
