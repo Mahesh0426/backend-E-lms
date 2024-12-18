@@ -85,7 +85,6 @@ userRouter.patch("/update", authMiddleware, async (req, res) => {
   try {
     // Destructure the _id and other formdata from req.body
     const { _id, ...updatedUser } = req.body;
-    console.log(req.body);
 
     // update user in db
     const user = await updateUser({ _id }, updatedUser);
