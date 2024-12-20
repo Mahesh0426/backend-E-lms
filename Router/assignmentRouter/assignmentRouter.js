@@ -12,6 +12,7 @@ import {
   getAssignmentByCourseId,
   getSubmittedAssignmentbyId,
   saveSubmission,
+  updateAssignment,
   updateAssignmentStatus,
 } from "../../model/assessmentModel/assessmentModel.js";
 import mongoose from "mongoose";
@@ -19,7 +20,7 @@ import { authMiddleware } from "../../middleware/authMiddleware.js";
 
 const assignmmentRouter = express.Router();
 
-// create a new assignmment | POST | private Route
+// create a new assignmment | POST | private Route | for tutor
 assignmmentRouter.post("/create", async (req, res) => {
   try {
     // Create a new assignmment
@@ -38,7 +39,35 @@ assignmmentRouter.post("/create", async (req, res) => {
   }
 });
 
-// get  all assignmment  list |GET | Public Route
+// edit\update  assignment | PATCH | private Route | for tutor
+assignmmentRouter.patch("/edit/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, dueDate, maxScore } = req.body;
+    console.log(req.params);
+    console.log(req.body);
+
+    const updatedAssignment = await updateAssignment(id, {
+      title,
+      description,
+      dueDate,
+      maxScore,
+    });
+    console.log("updatedAssignment", updatedAssignment);
+
+    updatedAssignment?._id
+      ? buildSuccessResponse(
+          res,
+          updatedAssignment,
+          "assignmment updated successfully!"
+        )
+      : buildErrorResponse(res, "assignmment could not be updated!");
+  } catch (error) {
+    console.error("Error while updating assignmment:", error);
+    return buildErrorResponse(res, "Error while updating assignmment!");
+  }
+});
+// get  all assignmment  list |GET | Public Route | for tutor
 assignmmentRouter.get("/get", async (req, res) => {
   try {
     const assignmments = await getAllAssignmentList();
@@ -54,7 +83,7 @@ assignmmentRouter.get("/get", async (req, res) => {
   }
 });
 
-//get a assignmment by CourseId  | GET | public Route
+//get a assignmment by CourseId  | GET | public Route | for Student
 assignmmentRouter.get("/assignment/:courseId", async (req, res) => {
   try {
     const { courseId } = req.params;
@@ -68,7 +97,7 @@ assignmmentRouter.get("/assignment/:courseId", async (req, res) => {
   }
 });
 
-// update a assignmment status by ID  | PATCH | private Route
+// update a assignmment status by ID  | PATCH | private Route |   for tutor
 assignmmentRouter.patch("/update-status/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -91,7 +120,7 @@ assignmmentRouter.patch("/update-status/:id", async (req, res) => {
 
 //ASSIGNMENT SUBMITSSION / user
 
-//   create a  new assignment Submission | POST | | private Route
+//   create a  new assignment Submission | POST | private Route
 assignmmentRouter.post("/create-submission", async (req, res) => {
   try {
     const assignmentSubmission = await createAssignmentSubmission(req.body);

@@ -6,6 +6,13 @@ export const createAssignment = (assignmentObj) => {
   return assignmentSchema(assignmentObj).save();
 };
 
+//update\edit  assignment
+export const updateAssignment = (_id, updatedObject) => {
+  return assignmentSchema.findByIdAndUpdate(_id, updatedObject, {
+    new: true,
+  });
+};
+
 // find all Assignment
 export const getAllAssignmentList = (filter) => {
   return assignmentSchema.find(filter);
