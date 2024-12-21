@@ -29,6 +29,31 @@ quizRouter.post("/create", async (req, res) => {
     return buildErrorResponse(res, "Error while creating quiz!");
   }
 });
+// edit\update  quiz | PATCH | private Route | for tutor
+quizRouter.patch("/edit/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, questions, dueDate, maxScore } = req.body;
+
+    const updatedAssignment = await updateAssignment(id, {
+      title,
+      description,
+      dueDate,
+      maxScore,
+    });
+
+    updatedAssignment?._id
+      ? buildSuccessResponse(
+          res,
+          updatedAssignment,
+          "assignmment updated successfully!"
+        )
+      : buildErrorResponse(res, "assignmment could not be updated!");
+  } catch (error) {
+    console.error("Error while updating assignmment:", error);
+    return buildErrorResponse(res, "Error while updating assignmment!");
+  }
+});
 
 // get  all quizes  list |GET | Public Route | for tutor
 quizRouter.get("/get", async (req, res) => {

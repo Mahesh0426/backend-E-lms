@@ -44,8 +44,6 @@ assignmmentRouter.patch("/edit/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { title, description, dueDate, maxScore } = req.body;
-    console.log(req.params);
-    console.log(req.body);
 
     const updatedAssignment = await updateAssignment(id, {
       title,
@@ -53,7 +51,6 @@ assignmmentRouter.patch("/edit/:id", async (req, res) => {
       dueDate,
       maxScore,
     });
-    console.log("updatedAssignment", updatedAssignment);
 
     updatedAssignment?._id
       ? buildSuccessResponse(
