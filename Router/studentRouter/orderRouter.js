@@ -122,4 +122,27 @@ orderRouter.post("/capture", async (req, res) => {
   }
 });
 
+//get order as invoice  by student id and course id  | GET
+orderRouter.get("/invoice/:studentId", async (req, res) => {
+  try {
+    const { studentId } = req.params;
+
+    const order = await Order.find({
+      userId: studentId,
+      paymentStatus: "paid",
+    });
+
+    order.length > 0
+      ? buildSuccessResponse(
+          res,
+          order,
+          "all the order list fetched successfuly!!"
+        )
+      : buildErrorResponse(res, "no order found for this student ");
+  } catch (error) {
+    console.error("Unexpected error in getInvoice:", error);
+    buildErrorResponse(res, "Error fetching order invoice.");
+  }
+});
+
 export default orderRouter;
