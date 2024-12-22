@@ -7,6 +7,10 @@ export const createQuiz = (quizObj) => {
   return quizSchema(quizObj).save();
 };
 
+// update quiz by id
+export const updateQuiz = (_id, updatedObject) => {
+  return quizSchema.findByIdAndUpdate(_id, updatedObject, { new: true });
+};
 // find all quizes
 export const getAllQuizesList = (filter) => {
   return quizSchema.find(filter);

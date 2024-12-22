@@ -6,6 +6,7 @@ import {
   getQuizByCourseId,
   getSubmittedQuiz,
   submitQuiz,
+  updateQuiz,
   updateQuizStatus,
 } from "../../model/quizModel.js/quizModel.js";
 import {
@@ -33,25 +34,16 @@ quizRouter.post("/create", async (req, res) => {
 quizRouter.patch("/edit/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, questions, dueDate, maxScore } = req.body;
+    const quizObj = req.body;
 
-    const updatedAssignment = await updateAssignment(id, {
-      title,
-      description,
-      dueDate,
-      maxScore,
-    });
+    const updatedQuiz = await updateQuiz(id, quizObj);
 
-    updatedAssignment?._id
-      ? buildSuccessResponse(
-          res,
-          updatedAssignment,
-          "assignmment updated successfully!"
-        )
-      : buildErrorResponse(res, "assignmment could not be updated!");
+    updatedQuiz?._id
+      ? buildSuccessResponse(res, updatedQuiz, "quiz updated successfully!")
+      : buildErrorResponse(res, "quiz could not be updated!");
   } catch (error) {
-    console.error("Error while updating assignmment:", error);
-    return buildErrorResponse(res, "Error while updating assignmment!");
+    console.error("Error while updating quiz:", error);
+    return buildErrorResponse(res, "Error while updating quiz!");
   }
 });
 
