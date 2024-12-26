@@ -145,4 +145,57 @@ orderRouter.get("/invoice/:studentId", async (req, res) => {
   }
 });
 
+// get revenue data for chart  | GET
+orderRouter.get("/revenue-data/:instructorId", async (req, res) => {
+  try {
+    const { instructorId } = req.params;
+
+    const data = await Order.aggregate([
+      {
+        $match: {
+          instructorId: instructorId,
+          paymentStatus: "paid",
+        },
+      },
+      {
+        $addFields: {
+          coursePricing: { $toDouble: "$coursePricing" }, // Convert coursePricing to a number
+        },
+      },
+      {
+        $group: {
+          _id: {
+            orderDate: {
+              $dateToString: { format: "%Y-%m-%d", date: "$orderDate" },
+            },
+          },
+          totalRevenue: { $sum: "$coursePricing" }, // Sum up coursePricing
+        },
+      },
+      {
+        $sort: { "_id.orderDate": 1 },
+      },
+      {
+        $project: {
+          _id: 0,
+          orderDate: "$_id.orderDate",
+          totalRevenue: 1,
+        },
+      },
+    ]);
+    console.log(data);
+
+    data.length > 0
+      ? buildSuccessResponse(
+          res,
+          data,
+          "Line chart data for instructor fetched successfully!"
+        )
+      : buildErrorResponse(res, "No data available for this instructor.");
+  } catch (error) {
+    console.error("Unexpected error in getLineChartData:", error);
+    buildErrorResponse(res, "Error fetching line chart data.");
+  }
+});
+
 export default orderRouter;

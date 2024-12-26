@@ -4,6 +4,7 @@ import AssignmentSubmission from "../../Schema/assessmentSchema/assignmentSubmis
 import QuizSubmission from "../../Schema/quiz/quizSubmissionSchema.js";
 import CourseProgress from "../../Schema/studentSchema/courseProgressSchema.js";
 import MyCourses from "../../Schema/studentSchema/myCoursesSchema.js";
+import User from "../../Schema/userSchema.js";
 import {
   buildErrorResponse,
   buildSuccessResponse,
@@ -115,88 +116,6 @@ marksRouter.get("/get-marks/student/:studentId", async (req, res) => {
 });
 
 // GET average scores of all courses taught by a particular instructor
-// marksRouter.get("/get-course-averages/:instructorId", async (req, res) => {
-//   const { instructorId } = req.params;
-
-//   try {
-//     // 1. Fetch all courses for this instructor
-//     const courses = await Course.find({ instructorId });
-//     const results = [];
-
-//     // 2. For each course, calculate average assignment & quiz scores
-//     for (const course of courses) {
-//       // Fetch assignment submissions
-//       const assignmentSubmissions = await AssignmentSubmission.find({
-//         courseId: course._id,
-//       });
-
-//       // Fetch quiz submissions
-//       const quizSubmissions = await QuizSubmission.find({
-//         courseId: course._id,
-//       });
-
-//       // Calculate assignment average
-//       const assignmentScores = assignmentSubmissions.map(
-//         (submission) => submission.score || 0
-//       );
-//       const assignmentAvg =
-//         assignmentScores.length > 0
-//           ? assignmentScores.reduce((acc, score) => acc + score, 0) /
-//             assignmentScores.length
-//           : 0;
-
-//       // Calculate quiz average
-//       const quizScores = quizSubmissions.map(
-//         (submission) => submission.obtainedMarks || 0
-//       );
-//       const quizAvg =
-//         quizScores.length > 0
-//           ? quizScores.reduce((acc, score) => acc + score, 0) /
-//             quizScores.length
-//           : 0;
-
-//       // 3. Fetch course progress data (from your CourseProgress schema)
-//       const courseProgressData = await CourseProgress.find({
-//         courseId: course._id,
-//       });
-
-//       // Count how many students have completed vs. not completed
-//       let completedCount = 0;
-//       let inProgress = 0;
-
-//       courseProgressData.forEach((progress) => {
-//         if (progress.completed) {
-//           completedCount++;
-//         } else {
-//           inProgress++;
-//         }
-//       });
-
-//       // 4. Push the result for this course
-//       const courseResult = {
-//         courseId: course._id,
-//         courseTitle: course.title,
-//         assignmentAverage: assignmentAvg,
-//         quizAverage: quizAvg,
-//         courseProgress: {
-//           completed: completedCount,
-//           inProgress: inProgress,
-//         },
-//       };
-//       results.push(courseResult);
-//     }
-
-//     // 5. Return the aggregated data for analytics
-//     buildSuccessResponse(
-//       res,
-//       results,
-//       "Course averages and course progress  fetched successfully!"
-//     );
-//   } catch (error) {
-//     console.error("Error fetching course averages:", error);
-//     buildErrorResponse(res, "Failed to fetch course averages");
-//   }
-// });
 
 marksRouter.get(
   "/get-course-stats/instructor/:instructorId",
@@ -205,21 +124,70 @@ marksRouter.get(
 
     try {
       // 1. Find all courses for this instructor
-      const courses = await Course.find({ instructorId });
-      const results = []; // will store stats for each course
+      const courses = await Course.find({ instructorId }).lean();
+      const courseIds = courses.map((course) => course._id.toString());
 
-      // 2. Loop through each course
-      for (const course of courses) {
+      // 2. Fetch all assignment submissions, quiz submissions, and MyCourses in one go
+      const [assignmentSubmissions, quizSubmissions, allMyCoursesDocs] =
+        await Promise.all([
+          AssignmentSubmission.find({ courseId: { $in: courseIds } }).lean(),
+          QuizSubmission.find({ courseId: { $in: courseIds } }).lean(),
+          MyCourses.find({ "courses.courseId": { $in: courseIds } }).lean(),
+        ]);
+
+      // 3. Create maps for quick access
+      const assignmentScoresMap = assignmentSubmissions.reduce(
+        (acc, submission) => {
+          acc[submission.courseId] = acc[submission.courseId] || [];
+          acc[submission.courseId].push(submission.score || 0);
+          return acc;
+        },
+        {}
+      );
+
+      const quizScoresMap = quizSubmissions.reduce((acc, submission) => {
+        acc[submission.courseId] = acc[submission.courseId] || [];
+        acc[submission.courseId].push(submission.obtainedMarks || 0);
+        return acc;
+      }, {});
+
+      // 4. Prepare enrolled user IDs
+      const enrolledUserIdsMap = {};
+      allMyCoursesDocs.forEach((doc) => {
+        doc.courses.forEach((course) => {
+          if (courseIds.includes(course.courseId)) {
+            enrolledUserIdsMap[course.courseId] =
+              enrolledUserIdsMap[course.courseId] || new Set();
+            enrolledUserIdsMap[course.courseId].add(doc.userId);
+          }
+        });
+      });
+
+      // Convert Set to Array before querying CourseProgress
+      const uniqueUserIds = {};
+      for (const courseId in enrolledUserIdsMap) {
+        uniqueUserIds[courseId] = [...enrolledUserIdsMap[courseId]]; // Convert Set to Array
+      }
+
+      // 5. Fetch progress for all enrolled users in one go
+      const progressDocs = await CourseProgress.find({
+        courseId: { $in: courseIds },
+        userId: { $in: [].concat(...Object.values(uniqueUserIds)) }, // Flatten arrays of user IDs
+      }).lean();
+
+      // 6. Build progress map for quick access
+      const progressMap = {};
+      progressDocs.forEach((progress) => {
+        progressMap[progress.userId] = progress;
+      });
+
+      // 7. Calculate stats for each course
+      const results = courses.map((course) => {
         const courseId = course._id.toString();
 
-        // 2a. Assignment & Quiz averages (same as before)
-        const assignmentSubmissions = await AssignmentSubmission.find({
-          courseId,
-        });
-        const quizSubmissions = await QuizSubmission.find({ courseId });
-
-        const assignmentScores = assignmentSubmissions.map((s) => s.score || 0);
-        const quizScores = quizSubmissions.map((s) => s.obtainedMarks || 0);
+        // Calculate averages
+        const assignmentScores = assignmentScoresMap[courseId] || [];
+        const quizScores = quizScoresMap[courseId] || [];
 
         const assignmentAvg =
           assignmentScores.length > 0
@@ -232,75 +200,33 @@ marksRouter.get(
             ? quizScores.reduce((acc, cur) => acc + cur, 0) / quizScores.length
             : 0;
 
-        // 2b. Find all userIds who have this course in their MyCourses array
-        //     The key is "courses.courseId": courseId
-        const allMyCoursesDocs = await MyCourses.find({
-          "courses.courseId": courseId,
-        });
+        // Get enrolled user IDs
+        const enrolledUserIds = [...(enrolledUserIdsMap[courseId] || [])];
+        const totalEnrolled = enrolledUserIds.length;
 
-        // We'll flatten the results to get a unique list of userIds
-        // who are enrolled in this course.
-        const enrolledUserIds = [];
-        allMyCoursesDocs.forEach((doc) => {
-          // doc.courses may contain multiple courses
-          doc.courses.forEach((c) => {
-            if (c.courseId === courseId) {
-              enrolledUserIds.push(doc.userId);
-            }
-          });
-        });
-
-        // Make them unique (just in case duplicates appear)
-        const uniqueUserIds = [...new Set(enrolledUserIds)];
-        const totalEnrolled = uniqueUserIds.length;
-
-        // 2c. Check CourseProgress to see if they started/completed
-        const progressDocs = await CourseProgress.find({
-          courseId: courseId,
-          userId: { $in: uniqueUserIds },
-        });
-
-        // Build a map of userId => progress doc
-        const progressMap = {};
-        progressDocs.forEach((p) => {
-          progressMap[p.userId] = p;
-        });
-
+        // Count progress stats
         let completedCount = 0;
         let notStartedCount = 0;
         let inProgressCount = 0;
 
-        uniqueUserIds.forEach((userId) => {
+        enrolledUserIds.forEach((userId) => {
           const userProgress = progressMap[userId];
-
-          // If no doc, definitely not started
           if (!userProgress) {
             notStartedCount++;
-            return;
-          }
-
-          // If doc exists and completed is true => completed
-          if (userProgress.completed) {
+          } else if (userProgress.completed) {
             completedCount++;
-            return;
-          }
-
-          // Otherwise, doc exists but not completed => check lecturesProgress
-          if (
+          } else if (
             !userProgress.lecturesProgress ||
             userProgress.lecturesProgress.length === 0
           ) {
-            // no lectures actually viewed => not started
             notStartedCount++;
           } else {
-            // some progress => in progress
             inProgressCount++;
           }
         });
 
-        // 2d. Build final stats for this course
-        results.push({
-          courseId: courseId,
+        return {
+          courseId,
           courseTitle: course.title,
           assignmentAverage: assignmentAvg,
           quizAverage: quizAvg,
@@ -310,14 +236,137 @@ marksRouter.get(
             inProgress: inProgressCount,
             completed: completedCount,
           },
-        });
-      }
+        };
+      });
 
-      // 3. Return the results array
+      // 8. Return the results array
       buildSuccessResponse(res, results, "Course stats fetched successfully!");
     } catch (error) {
       console.error("Error:", error);
       buildErrorResponse(res, "Failed to fetch course stats");
+    }
+  }
+);
+
+// GET Activity Log by instructor id  | GET
+marksRouter.get(
+  "/get-activity-log/instructor/:instructorId",
+  async (req, res) => {
+    const { instructorId } = req.params;
+
+    try {
+      // 1. Find all courses for this instructor
+      const courses = await Course.find({ instructorId }).lean();
+      const courseIds = courses.map((course) => course._id.toString());
+
+      // 2. Fetch all necessary data in parallel
+      const [
+        assignmentSubmissions,
+        quizSubmissions,
+        allMyCoursesDocs,
+        userDocs,
+      ] = await Promise.all([
+        AssignmentSubmission.find({ courseId: { $in: courseIds } }).lean(),
+        QuizSubmission.find({ courseId: { $in: courseIds } }).lean(),
+        MyCourses.find({ "courses.courseId": { $in: courseIds } }).lean(),
+        User.find({}).lean(), // Fetch all users
+      ]);
+
+      // Extract all userIds and their associated courseIds from MyCourses
+      const userCoursePairs = allMyCoursesDocs.flatMap((doc) =>
+        doc.courses.map((course) => ({
+          userId: doc.userId,
+          courseId: course.courseId,
+        }))
+      );
+
+      // 3. Fetch CourseProgress using userId and courseId
+      const userProgressDocs = await CourseProgress.find({
+        $or: userCoursePairs.map(({ userId, courseId }) => ({
+          userId,
+          courseId,
+        })),
+      }).lean();
+
+      // 4. Create maps for quick access
+      const userMap = userDocs.reduce((acc, user) => {
+        acc[user._id] = user.userName || "Unknown User"; // Map userId to userName
+        return acc;
+      }, {});
+
+      const userProgressMap = userProgressDocs.reduce((acc, progress) => {
+        const key = `${progress.userId}_${progress.courseId}`;
+        acc[key] = progress.completed ? "completed" : "inProgress";
+        return acc;
+      }, {});
+
+      const assignmentLogMap = assignmentSubmissions.reduce(
+        (acc, submission) => {
+          acc[submission.courseId] = acc[submission.courseId] || [];
+          acc[submission.courseId].push({
+            userId: submission.studentId,
+            userName: userMap[submission.studentId] || "Unknown User", // Add userId and userName
+            score: submission.score || 0,
+            submissionDate: submission.submissionDate || null,
+          });
+          return acc;
+        },
+        {}
+      );
+
+      const quizLogMap = quizSubmissions.reduce((acc, submission) => {
+        acc[submission.courseId] = acc[submission.courseId] || [];
+        acc[submission.courseId].push({
+          userId: submission.studentId,
+          userName: userMap[submission.studentId] || "Unknown User", // Add userId and userName
+          obtainedMarks: submission.obtainedMarks || 0,
+          submittedAt: submission.submittedAt || null,
+        });
+        return acc;
+      }, {});
+
+      const purchaseLogMap = allMyCoursesDocs.reduce((acc, doc) => {
+        doc.courses.forEach((course) => {
+          if (courseIds.includes(course.courseId)) {
+            const key = `${doc.userId}_${course.courseId}`;
+            acc[course.courseId] = acc[course.courseId] || [];
+            acc[course.courseId].push({
+              userId: doc.userId,
+              userName: userMap[doc.userId] || "Unknown User", // Fetch userName from userMap
+              dateOfPurchase: course.dateofPurschase || null,
+              courseProgress: userProgressMap[key] || "notStarted", // Add course progress
+            });
+          }
+        });
+        return acc;
+      }, {});
+
+      // 5. Build activity log for each course
+      const activityLogs = courses.map((course) => {
+        const courseId = course._id.toString();
+
+        const assignmentLogs = assignmentLogMap[courseId] || [];
+        const quizLogs = quizLogMap[courseId] || [];
+        const purchaseLogs = purchaseLogMap[courseId] || [];
+
+        return {
+          courseId,
+          courseTitle: course.title,
+          assignmentLogs,
+          quizLogs,
+          purchaseLogs,
+        };
+      });
+
+      // 6. Return the activity logs
+      buildSuccessResponse(
+        res,
+        activityLogs,
+        "Activity logs fetched successfully!"
+      );
+    } catch (error) {
+      console.error("Error:", error);
+      buildErrorResponse(res, "Failed to fetch activity logs");
     }
   }
 );
