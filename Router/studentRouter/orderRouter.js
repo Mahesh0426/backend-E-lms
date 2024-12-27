@@ -183,7 +183,6 @@ orderRouter.get("/revenue-data/:instructorId", async (req, res) => {
         },
       },
     ]);
-    console.log(data);
 
     data.length > 0
       ? buildSuccessResponse(

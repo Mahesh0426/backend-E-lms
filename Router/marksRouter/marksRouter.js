@@ -62,7 +62,7 @@ marksRouter.get("/get-all-marks/instructor/:instructorId", async (req, res) => {
   }
 });
 
-// Get marks for a particular student using studentId and courseId | GET | private Route
+// Get marks for a particular student using studentId | GET | private Route
 marksRouter.get("/get-marks/student/:studentId", async (req, res) => {
   const { studentId } = req.params;
 

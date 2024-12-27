@@ -1,4 +1,4 @@
-import express from "express";
+import express, { response } from "express";
 import {
   buildErrorResponse,
   buildSuccessResponse,
@@ -72,6 +72,67 @@ courseProgressRouter.get("/:userId/:courseId", async (req, res) => {
   }
 });
 
+//get course progress percentage  | GET
+courseProgressRouter.get("/:studentId", async (req, res) => {
+  try {
+    const { studentId } = req.params;
+    console.log(studentId);
+
+    // Find all courses where the student is enrolled
+    const courses = await Course.find({ "students.studentId": studentId });
+
+    if (!courses || courses.length === 0) {
+      return res.json({
+        message: "No courses found for this student.",
+        courses: [],
+      });
+    }
+
+    // Fetch progress for each course
+    const result = await Promise.all(
+      courses.map(async (course) => {
+        // Get the student's progress for the course
+        const progress = await CourseProgress.findOne({
+          userId: studentId,
+          courseId: course._id,
+        });
+
+        // Calculate total lectures and viewed lectures
+        const totalLectures = course.curriculum.length;
+        const viewedLectures = progress
+          ? progress.lecturesProgress.filter((lecture) => lecture.viewed).length
+          : 0;
+
+        // Calculate progress percentage
+        const progressPercentage = totalLectures
+          ? Math.round((viewedLectures / totalLectures) * 100)
+          : 0;
+
+        // Return course details with progress percentage
+        return {
+          courseId: course._id,
+          title: course.title,
+          progressPercentage,
+        };
+      })
+    );
+
+    // Send the result
+    buildSuccessResponse(
+      res,
+      result,
+      "course progress percentage fetched successfully!!"
+    );
+  } catch (error) {
+    console.error("Error fetching student courses with progress:", error);
+    buildErrorResponse(
+      res,
+      "Some error occurred while fetching student courses and progress.",
+      500
+    );
+  }
+});
+
 //mark current lecture as viewed | POST
 courseProgressRouter.post("/mark-lecture-view", async (req, res) => {
   try {
@@ -121,9 +182,11 @@ courseProgressRouter.post("/mark-lecture-view", async (req, res) => {
     if (allLecturesViewed) {
       progress.completed = true;
       progress.completionDate = new Date();
-
-      await progress.save();
+    } else {
+      progress.completed = false;
+      progress.completionDate = null;
     }
+    await progress.save();
     return buildSuccessResponse(res, progress, "Lecture marked as viewed!");
   } catch (error) {
     console.error("Error marking lecture as viewed:", error);
