@@ -9,7 +9,7 @@ import {
   buildFilters,
   buildSortParam,
 } from "../../utility/filter&SortingHelper.js";
-import { findCourseById } from "../../model/myCourseModel.js";
+
 const studentCourseRouter = express.Router();
 
 // get  all  student course |GET | Public Route
@@ -53,33 +53,5 @@ studentCourseRouter.get("/:id", async (req, res) => {
     buildErrorResponse(res, "Error fetching course details for student");
   }
 });
-
-// Check if the course is purchased by the student | GET
-// studentCourseRouter.get("/purchase-info/:id/:studentId", async (req, res) => {
-//   try {
-//     const { id: courseId, studentId } = req.params;
-
-//     // Fetch the student's courses
-//     const studentCourses = await findCourseById(studentId);
-
-//     // Check if the student has purchased the course
-//     const isCoursePurchased = studentCourses?.courses.some(
-//       (item) => item.courseId === courseId
-//     );
-
-//     if (isCoursePurchased) {
-//       buildSuccessResponse(res, true, "Course has already been purchased!");
-//     } else {
-//       buildSuccessResponse(res, false, "Course has not been purchased yet.");
-//     }
-//   } catch (error) {
-//     console.error("Error checking course purchase info:", error);
-//     buildErrorResponse(
-//       res,
-//       "Some error occurred while checking course purchase info.",
-//       500
-//     );
-//   }
-// });
 
 export default studentCourseRouter;

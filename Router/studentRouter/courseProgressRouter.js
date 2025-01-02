@@ -76,7 +76,6 @@ courseProgressRouter.get("/:userId/:courseId", async (req, res) => {
 courseProgressRouter.get("/:studentId", async (req, res) => {
   try {
     const { studentId } = req.params;
-    console.log(studentId);
 
     // Find all courses where the student is enrolled
     const courses = await Course.find({ "students.studentId": studentId });

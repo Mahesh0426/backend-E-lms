@@ -42,6 +42,11 @@ const userSchema = new mongoose.Schema(
       enum: ["Business", "Technology", "Health", "Science", "Other"],
       default: "Other",
     },
+    language: {
+      type: String,
+      enum: ["English", "Hindi", "Nepali", "Bengali", "Urdu"],
+      default: "English",
+    },
   },
   {
     timestamps: true,
