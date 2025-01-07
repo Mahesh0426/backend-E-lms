@@ -30,7 +30,12 @@ export const authMiddleware = async (req, res, next) => {
           return buildErrorResponse(res, "User not found", 401);
         }
         // isprivate part missed
-        if (user?._id && (user.role === "instructor" || user.role === "user")) {
+        if (
+          user?._id &&
+          (user.role === "instructor" ||
+            user.role === "user" ||
+            user.role === "admin")
+        ) {
           user.password = undefined;
           req.userInfo = user;
 

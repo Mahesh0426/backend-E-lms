@@ -1,12 +1,12 @@
 import express from "express";
-
+import * as tf from "@tensorflow/tfjs-node";
 import { findCourseById } from "../../model/myCourseModel.js";
 import {
   buildErrorResponse,
   buildSuccessResponse,
 } from "../../utility/reponseHelper.js";
 import { authMiddleware } from "../../middleware/authMiddleware.js";
-// import cosineSimilarity from "cosine-similarity";
+import cosineSimilarity from "cosine-similarity";
 import User from "../../Schema/userSchema.js";
 import Course from "../../Schema/courseSchema.js";
 
@@ -35,7 +35,8 @@ myCourseRouter.get("/:studentId", authMiddleware, async (req, res) => {
 
 // Function to vectorize attributes
 const vectorize = (user, course) => {
-  const userVector = [
+  // Extract user and course features
+  const userFeatures = [
     ...user.primaryInterests
       .split(", ")
       .map((interest) => interest.toLowerCase()),
@@ -43,36 +44,47 @@ const vectorize = (user, course) => {
     user.language.toLowerCase(),
   ];
 
-  const courseVector = [
+  const courseFeatures = [
     course.category.toLowerCase(),
     course.level.toLowerCase(),
     course.primaryLanguage.toLowerCase(),
   ];
 
-  // One-hot encode the combined vectors
-  const allAttributes = [...new Set([...userVector, ...courseVector])];
+  // Create a unified set of all unique attributes
+  const allAttributes = Array.from(
+    new Set([...userFeatures, ...courseFeatures])
+  );
+
+  // One-hot encode user and course features
   const userEncoded = allAttributes.map((attr) =>
-    userVector.includes(attr) ? 1 : 0
+    userFeatures.includes(attr) ? 1 : 0
   );
   const courseEncoded = allAttributes.map((attr) =>
-    courseVector.includes(attr) ? 1 : 0
+    courseFeatures.includes(attr) ? 1 : 0
   );
 
-  return { userEncoded, courseEncoded };
-};
+  // Normalize the vectors
+  const normalize = (vector) =>
+    Math.sqrt(vector.reduce((sum, value) => sum + value ** 2, 0));
+  const normalizedUser = userEncoded.map(
+    (value) => value / normalize(userEncoded)
+  );
+  const normalizedCourse = courseEncoded.map(
+    (value) => value / normalize(courseEncoded)
+  );
 
+  return { userEncoded: normalizedUser, courseEncoded: normalizedCourse };
+};
 // Recommendation system for student | GET
 myCourseRouter.get(
   "/recommendations/:userId",
   authMiddleware,
   async (req, res) => {
     try {
-      const userId = req.userInfo._id.toString();
-      console.log("User ID:", userId);
+      const userId = req.userInfo._id;
 
       // Fetch user data
       const user = await User.findById(userId);
-      console.log("User Preferences:", user);
 
       // Adjusted Query for Filtering
       const filteredCourses = await Course.find({
@@ -112,8 +124,6 @@ myCourseRouter.get(
           message: "No exact match found. Showing trending courses instead.",
         });
       }
-
-      console.log("Filtered Courses:", filteredCourses);
 
       // Calculate similarity for each filtered course
       const recommendations = filteredCourses.map((course) => {
