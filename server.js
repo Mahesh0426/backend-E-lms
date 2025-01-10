@@ -13,6 +13,7 @@ import studentCourseRouter from "./Router/studentRouter/studentCourseRouter.js";
 import quizRouter from "./Router/quizRouter/quizRouter.js";
 import assignmmentRouter from "./Router/assignmentRouter/assignmentRouter.js";
 import marksRouter from "./Router/marksRouter/marksRouter.js";
+import reviewRouter from "./Router/studentRouter/reviewRouter.js";
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -54,6 +55,7 @@ app.use("/api/student/course-progress", courseProgressRouter);
 app.use("/api/quiz", quizRouter);
 app.use("/api/assignment", assignmmentRouter);
 app.use("/api/marks", marksRouter);
+app.use("/api/reviews", reviewRouter);
 
 // start server
 app.listen(PORT, (error) => {

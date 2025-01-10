@@ -11,6 +11,7 @@ import User from "../../Schema/userSchema.js";
 import Course from "../../Schema/courseSchema.js";
 import assignmentSubmissionSchema from "../../Schema/assessmentSchema/assignmentSubmissionSchema.js";
 import quizSubmissionSchema from "../../Schema/quiz/quizSubmissionSchema.js";
+import myCoursesSchema from "../../Schema/studentSchema/myCoursesSchema.js";
 
 const myCourseRouter = express.Router();
 
@@ -152,6 +153,7 @@ myCourseRouter.get("/:studentId", authMiddleware, async (req, res) => {
 
 // Function to vectorize user and course features
 const vectorizeData = (user, course) => {
+  // Extract user features: primary interests, skill level, and language
   const userFeatures = [
     ...(user.primaryInterests
       ?.split(", ")
@@ -160,21 +162,23 @@ const vectorizeData = (user, course) => {
     user.language?.toLowerCase() || "",
   ];
 
+  // Extract course features: category, level, and primary language
   const courseFeatures = [
     course.category.toLowerCase(),
     course.level.toLowerCase(),
     course.primaryLanguage.toLowerCase(),
   ];
 
-  // Create a unified set of all unique attributes
+  // Combine all unique attributes from both user and course into a unified set
   const allAttributes = Array.from(
     new Set([...userFeatures, ...courseFeatures])
   );
 
-  // One-hot encode features
+  // Create a vector for the user by marking 1 for matching attributes and 0 for non-matching
   const userVector = allAttributes.map((attr) =>
     userFeatures.includes(attr) ? 1 : 0
   );
+  // Create a vector for the course using the same logic
   const courseVector = allAttributes.map((attr) =>
     courseFeatures.includes(attr) ? 1 : 0
   );
@@ -184,9 +188,14 @@ const vectorizeData = (user, course) => {
 
 // Function to calculate cosine similarity
 const cosineSimilarity = (vectorA, vectorB) => {
+  // Convert vectors to TensorFlow tensors
   const a = tf.tensor(vectorA);
   const b = tf.tensor(vectorB);
+
+  // Calculate the dot product of the two vector
   const dotProduct = tf.sum(a.mul(b)).arraySync();
+
+  // Calculate the magnitude (length) of each vector
   const magnitudeA = tf.sqrt(tf.sum(a.square())).arraySync();
   const magnitudeB = tf.sqrt(tf.sum(b.square())).arraySync();
 
@@ -198,14 +207,27 @@ myCourseRouter.get("/recommendations/:userId", async (req, res) => {
   try {
     const userId = req.params.userId;
 
-    // Fetch user data
+    // 1) Fetch user data
     const user = await User.findById(userId);
 
-    // Scenario 1: No preferences
+    // 2) Fetch the single MyCourses document for the user
+    const myCoursesDoc = await myCoursesSchema.findOne({ userId });
+    let enrolledCourseIds = [];
+
+    // If a MyCourses document exists, extract the 'courseId' from each course
+    if (myCoursesDoc && myCoursesDoc.courses) {
+      enrolledCourseIds = myCoursesDoc.courses.map((c) => c.courseId);
+    }
+
+    // Scenario 1: if user hasn't set interests or skill level
     if (!user.primaryInterests || !user.skillLevel) {
-      const mostEnrolledCourses = await Course.find()
+      const mostEnrolledCourses = await Course.find({
+        // Exclude courses already enrolled and return the most popular courses (most enrolled)
+        _id: { $nin: enrolledCourseIds },
+      })
         .sort({ "students.length": -1 })
         .limit(4);
+
       return res.status(200).json({
         success: true,
         recommendations: mostEnrolledCourses,
@@ -224,15 +246,44 @@ myCourseRouter.get("/recommendations/:userId", async (req, res) => {
 
     // Scenario 2: Preferences but no quiz/assignment data
     if (quizSubmissions.length === 0 && assignmentSubmissions.length === 0) {
+      // First, Find courses matching user's interests & skill level, excluding enrolled
       const filteredCourses = await Course.find({
-        category: {
-          $regex: new RegExp(user.primaryInterests.split(", ").join("|"), "i"),
-        },
+        _id: { $nin: enrolledCourseIds }, // <-- Exclude enrolled
+        $or: [
+          {
+            category: {
+              $regex: new RegExp(
+                user.primaryInterests
+                  .split(", ")
+                  .map((interest) =>
+                    interest.replace(/\s+/g, "-").toLowerCase()
+                  )
+                  .join("|"),
+                "i"
+              ),
+            },
+          },
+          {
+            title: {
+              $regex: new RegExp(
+                user.primaryInterests
+                  .split(", ")
+                  .map((interest) => interest.toLowerCase())
+                  .join("|"),
+                "i"
+              ),
+            },
+          },
+        ],
         level: user.skillLevel.toLowerCase(),
       });
 
+      // Second, Use vector similarity to rank these courses
       const recommendations = filteredCourses.map((course) => {
+        // Convert user and course data to vectors
         const { userVector, courseVector } = vectorizeData(user, course);
+        // Calculate similarity between vectors
+
         const similarity = cosineSimilarity(userVector, courseVector);
         return { course, similarity };
       });
@@ -250,55 +301,83 @@ myCourseRouter.get("/recommendations/:userId", async (req, res) => {
     }
 
     // Scenario 3: Preferences with quiz/assignment data
-    const quizScores = quizSubmissions.map((quiz) => quiz.obtainedMarks);
-    const assignmentScores = assignmentSubmissions.map(
-      (assignment) => assignment.score
-    );
+    if (quizSubmissions.length > 0 || assignmentSubmissions.length > 0) {
+      const quizScores = quizSubmissions.map((quiz) => quiz.obtainedMarks);
+      const assignmentScores = assignmentSubmissions.map(
+        (assignment) => assignment.score
+      );
 
-    const averageQuizScore =
-      quizScores.length > 0
-        ? quizScores.reduce((a, b) => a + b) / quizScores.length
-        : 0;
-    const averageAssignmentScore =
-      assignmentScores.length > 0
-        ? assignmentScores.reduce((a, b) => a + b) / assignmentScores.length
-        : 0;
+      const averageQuizScore =
+        quizScores.length > 0
+          ? quizScores.reduce((a, b) => a + b) / quizScores.length
+          : 0;
+      const averageAssignmentScore =
+        assignmentScores.length > 0
+          ? assignmentScores.reduce((a, b) => a + b) / assignmentScores.length
+          : 0;
 
-    // Determine performance threshold
-    const performanceThreshold = 70;
+      // Determine performance threshold
+      const performanceThreshold = 70;
 
-    // Determine category where the student performed well
-    const topCategory = await Course.findOne({
-      _id: quizSubmissions[0]?.courseId,
-    });
+      // Determine the category from the last quiz submission
+      const topQuizSubmission = quizSubmissions[quizSubmissions.length - 1];
+      let topCategory = null;
+      if (topQuizSubmission) {
+        const topCategoryCourse = await Course.findOne({
+          _id: topQuizSubmission.courseId,
+        });
+        topCategory = topCategoryCourse?.category || null;
+      }
 
-    // Choose course level based on performance
-    let recommendedCourses;
-    if (
-      averageQuizScore >= performanceThreshold &&
-      averageAssignmentScore >= performanceThreshold
-    ) {
-      // Recommend advanced courses in the same category
-      recommendedCourses = await Course.find({
-        category: topCategory?.category,
-        level: { $in: ["intermediate", "advanced"] },
+      // Determine which levels to recommend based on performance
+      const levelFilter =
+        averageQuizScore >= performanceThreshold &&
+        averageAssignmentScore >= performanceThreshold
+          ? { $in: ["intermediate", "advanced"] }
+          : { $in: ["beginner", "intermediate"] };
+
+      // Build interests-based regex
+      const interestsRegex = new RegExp(
+        user.primaryInterests
+          .split(", ")
+          .map((interest) => interest.replace(/\s+/g, "-").toLowerCase())
+          .join("|"),
+        "i"
+      );
+
+      // Merge topCategory + user interests in an $or array
+      const queryCriteria = [
+        { category: interestsRegex },
+        { title: interestsRegex },
+      ];
+
+      if (topCategory) {
+        queryCriteria.push({ category: topCategory });
+      }
+
+      // Exclude enrolled courses, filter by query criteria and level
+      let recommendedCourses = await Course.find({
+        _id: { $nin: enrolledCourseIds }, // <-- Exclude enrolled
+        $and: [
+          {
+            $or: queryCriteria,
+          },
+          {
+            level: levelFilter,
+          },
+        ],
       }).sort({ "students.length": -1 });
-    } else {
-      // Recommend beginner or intermediate courses in the same category
-      recommendedCourses = await Course.find({
-        category: topCategory?.category,
-        level: { $in: ["beginner", "intermediate"] },
-      }).sort({ "students.length": -1 });
+
+      return res.status(200).json({
+        success: true,
+        recommendations: recommendedCourses,
+        message:
+          "Showing courses based on your quiz/assignment performance and your primary interests (excluding enrolled).",
+      });
     }
-
-    return res.status(200).json({
-      success: true,
-      recommendations: recommendedCourses,
-      message: "Showing courses based on your quiz and assignment performance.",
-    });
   } catch (error) {
-    console.error("Error fetching recommendations:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
+
 export default myCourseRouter;
