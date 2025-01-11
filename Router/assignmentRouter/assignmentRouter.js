@@ -64,10 +64,14 @@ assignmmentRouter.patch("/edit/:id", async (req, res) => {
     return buildErrorResponse(res, "Error while updating assignmment!");
   }
 });
-// get  all assignmment  list |GET | Public Route | for tutor
-assignmmentRouter.get("/get", async (req, res) => {
+
+// get  all assignmment  list by instructorId |GET | Public Route | for tutor
+assignmmentRouter.get("/get/:id", authMiddleware, async (req, res) => {
   try {
-    const assignmments = await getAllAssignmentList();
+    //get from auth middleware
+    const instructorId = req.userInfo.id;
+
+    const assignmments = await getAllAssignmentList(instructorId);
 
     buildSuccessResponse(
       res,

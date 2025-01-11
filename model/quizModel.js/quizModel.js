@@ -12,8 +12,8 @@ export const updateQuiz = (_id, updatedObject) => {
   return quizSchema.findByIdAndUpdate(_id, updatedObject, { new: true });
 };
 // find all quizes
-export const getAllQuizesList = (filter) => {
-  return quizSchema.find(filter);
+export const getAllQuizesList = (instructorId) => {
+  return quizSchema.find({ instructorId });
 };
 
 // update a quiz status by ID

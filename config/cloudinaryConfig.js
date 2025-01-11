@@ -29,20 +29,50 @@ const uploadMediaToCloudinary = async (filepath) => {
     throw new Error("Error while uploading media to Cloudinary.");
   }
 };
-
+//delete a file from the cloudinary
 // const deleteMediaFromCloudinary = async (publicId) => {
-const deleteMediaFromCloudinary = async (publicId) => {
-  //   console.log("Attempting to delete media with publicId:", publicId);
+//   //   console.log("Attempting to delete media with publicId:", publicId);
 
+//   try {
+//     // Attempt to delete the video from Cloudinary
+//     const result = await cloudinary.uploader.destroy(publicId, {
+//       resource_type: "auto",
+//     });
+
+//     // console.log("Cloudinary deletion result:", result);
+
+//     // Check the result of the Cloudinary deletion
+//     if (result.result === "ok" || result.result === "deleted") {
+//       return true;
+//     } else if (result.result === "not found") {
+//       console.warn(
+//         `Media with publicId ${publicId} was not found in Cloudinary`
+//       );
+//       return false;
+//     } else {
+//       console.error("Unexpected Cloudinary deletion result:", result);
+//       throw new Error(`Cloudinary deletion failed: ${result.result}`);
+//     }
+//   } catch (error) {
+//     console.error("Cloudinary deletion error:", error.message || error);
+//     throw new Error("Error while deleting media from Cloudinary.");
+//   }
+// };
+const deleteMediaFromCloudinary = async (publicId) => {
   try {
-    // Attempt to delete the video from Cloudinary
-    const result = await cloudinary.uploader.destroy(publicId, {
-      resource_type: "video",
+    // Step 1: Try deleting the media as an image first
+    let result = await cloudinary.uploader.destroy(publicId, {
+      resource_type: "image",
     });
 
-    // console.log("Cloudinary deletion result:", result);
+    // Step 2: If the media is not found as an image, try deleting it as a video
+    if (result.result === "not found") {
+      result = await cloudinary.uploader.destroy(publicId, {
+        resource_type: "video",
+      });
+    }
 
-    // Check the result of the Cloudinary deletion
+    // Step 3: Check the result of the deletion
     if (result.result === "ok" || result.result === "deleted") {
       return true;
     } else if (result.result === "not found") {

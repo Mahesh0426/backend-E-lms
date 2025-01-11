@@ -10,14 +10,18 @@ import {
   getCourses,
   updateCourse,
 } from "../model/courseModel.js";
+import { authMiddleware } from "../middleware/authMiddleware.js";
 
 const courseRouter = express.Router();
 
 //get all courses | GET | public Route
-courseRouter.get("/get", async (req, res) => {
+courseRouter.get("/get/:id", authMiddleware, async (req, res) => {
   try {
+    //get from auth middleware
+    const instructorId = req.userInfo.id;
+
     // Fetch Courses
-    const courses = await getCourses();
+    const courses = await getCourses(instructorId);
 
     courses.length > 0
       ? buildSuccessResponse(res, courses, "Courses fetched successfully!!")

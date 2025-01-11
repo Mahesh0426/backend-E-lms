@@ -10,7 +10,7 @@ const lectureSchema = new mongoose.Schema({
 const courseSchema = new mongoose.Schema(
   {
     instructorId: {
-      type: mongoose.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
@@ -63,6 +63,9 @@ const courseSchema = new mongoose.Schema(
       type: Number,
       required: true,
       min: 0,
+    },
+    averageRating: {
+      type: Number,
     },
     objectives: {
       type: String,

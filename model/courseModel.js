@@ -32,8 +32,8 @@ export const getCourse = (_id) => {
 };
 
 // GET ALL Courses for instructor
-export const getCourses = (filter) => {
-  return courseSchema.find(filter);
+export const getCourses = (instructorId) => {
+  return courseSchema.find({ instructorId });
 };
 
 // GET ALL Courses for student

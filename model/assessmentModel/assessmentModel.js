@@ -14,8 +14,8 @@ export const updateAssignment = (_id, updatedObject) => {
 };
 
 // find all Assignment
-export const getAllAssignmentList = (filter) => {
-  return assignmentSchema.find(filter);
+export const getAllAssignmentList = (instructorId) => {
+  return assignmentSchema.find({ instructorId });
 };
 
 // update a assignment status by ID

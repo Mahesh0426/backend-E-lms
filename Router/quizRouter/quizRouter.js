@@ -48,9 +48,12 @@ quizRouter.patch("/edit/:id", async (req, res) => {
 });
 
 // get  all quizes  list |GET | Public Route | for tutor
-quizRouter.get("/get", async (req, res) => {
+quizRouter.get("/get/:id", authMiddleware, async (req, res) => {
   try {
-    const quizzes = await getAllQuizesList();
+    //get from auth middleware
+    const instructorId = req.userInfo.id;
+
+    const quizzes = await getAllQuizesList(instructorId);
 
     buildSuccessResponse(res, quizzes, "Quizzes fetched successfully!");
   } catch (error) {
