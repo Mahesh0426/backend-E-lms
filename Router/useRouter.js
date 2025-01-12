@@ -1,6 +1,11 @@
 import express from "express";
 import { v4 as uuidv4 } from "uuid";
-import { createUser, findUserByEmail, updateUser } from "../model/userModel.js";
+import {
+  createUser,
+  findUserByEmail,
+  getUsers,
+  updateUser,
+} from "../model/userModel.js";
 import { comparePassword, hashPassword } from "../utility/bcryptHelper.js";
 import {
   buildErrorResponse,
@@ -77,6 +82,18 @@ userRouter.get("/", authMiddleware, async (req, res) => {
     buildSuccessResponse(res, req.userInfo, "User Info");
   } catch (error) {
     buildErrorResponse(res, error.message);
+  }
+});
+
+//Get All the user | Private |  for Admin
+userRouter.get("/all", authMiddleware, async (req, res) => {
+  try {
+    const users = await getUsers();
+
+    buildSuccessResponse(res, users, "All users fetched successfully");
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    buildErrorResponse(res, "Error fetching users");
   }
 });
 
