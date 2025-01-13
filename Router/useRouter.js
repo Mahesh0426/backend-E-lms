@@ -97,6 +97,30 @@ userRouter.get("/all", authMiddleware, async (req, res) => {
   }
 });
 
+//UPDATE USER ROLE  | FOR ADMIN
+userRouter.patch("/update-role/", authMiddleware, async (req, res) => {
+  try {
+    // const { userId, role } = req.body;
+    // console.log(req.body);
+    const { userId, role } = req.body.userId ? req.body.userId : req.body;
+
+    console.log("Received userId:", userId);
+    console.log("Received role:", role);
+
+    // update user in db
+    const user = await updateUser({ _id: userId }, { role });
+    console.log(user);
+
+    // Check if the update was successful
+    user?._id
+      ? buildSuccessResponse(res, user, "User role updated successfully")
+      : buildErrorResponse(res, "Could not update user role");
+  } catch (error) {
+    console.error("Error updating user role:", error);
+    buildErrorResponse(res, "Could not update user role");
+  }
+});
+
 // UPDATE USER | PATCH | PRIVATE
 userRouter.patch("/update", authMiddleware, async (req, res) => {
   try {
