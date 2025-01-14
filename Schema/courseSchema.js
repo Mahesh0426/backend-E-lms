@@ -81,7 +81,10 @@ const courseSchema = new mongoose.Schema(
       },
     ],
     curriculum: [lectureSchema],
-    isPublished: Boolean,
+    isPublished: {
+      type: Boolean,
+      default: true,
+    },
   },
   {
     timestamps: true,

@@ -104,12 +104,8 @@ userRouter.patch("/update-role/", authMiddleware, async (req, res) => {
     // console.log(req.body);
     const { userId, role } = req.body.userId ? req.body.userId : req.body;
 
-    console.log("Received userId:", userId);
-    console.log("Received role:", role);
-
     // update user in db
     const user = await updateUser({ _id: userId }, { role });
-    console.log(user);
 
     // Check if the update was successful
     user?._id
