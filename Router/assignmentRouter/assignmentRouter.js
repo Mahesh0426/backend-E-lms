@@ -6,6 +6,7 @@ import {
 import {
   createAssignment,
   createAssignmentSubmission,
+  deleteAssignment,
   findSubmissionByIds,
   getAllAssignmentList,
   getAllSubmittedAssignmentList,
@@ -62,6 +63,26 @@ assignmmentRouter.patch("/edit/:id", async (req, res) => {
   } catch (error) {
     console.error("Error while updating assignmment:", error);
     return buildErrorResponse(res, "Error while updating assignmment!");
+  }
+});
+
+// delete assignment | DELETE | private Route
+assignmmentRouter.delete("/delete/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deletedAssignment = await deleteAssignment(id);
+
+    deletedAssignment?._id
+      ? buildSuccessResponse(
+          res,
+          deletedAssignment,
+          "assignmment deleted successfully!"
+        )
+      : buildErrorResponse(res, "assignmment could not be deleted!");
+  } catch (error) {
+    console.error("Error while deleting assignmment:", error);
+    return buildErrorResponse(res, "Error while deleting assignmment!");
   }
 });
 

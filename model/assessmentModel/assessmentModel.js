@@ -13,6 +13,11 @@ export const updateAssignment = (_id, updatedObject) => {
   });
 };
 
+//delete assignment
+export const deleteAssignment = (_id) => {
+  return assignmentSchema.findByIdAndDelete(_id);
+};
+
 // find all Assignment
 export const getAllAssignmentList = (instructorId) => {
   return assignmentSchema.find({ instructorId });

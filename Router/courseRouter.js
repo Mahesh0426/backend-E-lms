@@ -5,6 +5,7 @@ import {
 } from "../utility/reponseHelper.js";
 import {
   createCourse,
+  deleteCourse,
   deleteLecture,
   getCourse,
   getCourses,
@@ -57,6 +58,28 @@ courseRouter.post("/create", async (req, res) => {
   } catch (error) {
     console.error("Error while adding course:", error);
     return buildErrorResponse(res, "Error while saving course!", 500);
+  }
+});
+
+//delete a course | DELETE | private Route
+courseRouter.delete("/delete/:id", async (req, res) => {
+  try {
+    const courseId = req.params.id;
+
+    const deletedCourse = await deleteCourse(courseId);
+
+    if (deletedCourse) {
+      return buildSuccessResponse(
+        res,
+        deletedCourse,
+        "Course deleted successfully!"
+      );
+    } else {
+      return buildErrorResponse(res, "Course could not be deleted!");
+    }
+  } catch (error) {
+    console.error("Error while deleting course:", error);
+    return buildErrorResponse(res, "Error while deleting course!");
   }
 });
 

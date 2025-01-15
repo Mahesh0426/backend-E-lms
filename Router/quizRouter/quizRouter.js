@@ -1,6 +1,7 @@
 import express from "express";
 import {
   createQuiz,
+  deleteQuiz,
   getAllQuizesList,
   getallSubmittedQuiz,
   getQuizByCourseId,
@@ -44,6 +45,22 @@ quizRouter.patch("/edit/:id", async (req, res) => {
   } catch (error) {
     console.error("Error while updating quiz:", error);
     return buildErrorResponse(res, "Error while updating quiz!");
+  }
+});
+
+// delete quiz | DELETE | private Route
+quizRouter.delete("/delete/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deletedQuiz = await deleteQuiz(id);
+
+    deletedQuiz?._id
+      ? buildSuccessResponse(res, deletedQuiz, "Quiz deleted successfully!")
+      : buildErrorResponse(res, "Quiz could not be deleted!");
+  } catch (error) {
+    console.error("Error while deleting quiz:", error);
+    return buildErrorResponse(res, "Error while deleting quiz!");
   }
 });
 

@@ -11,6 +11,12 @@ export const createQuiz = (quizObj) => {
 export const updateQuiz = (_id, updatedObject) => {
   return quizSchema.findByIdAndUpdate(_id, updatedObject, { new: true });
 };
+
+//delete quiz bi id
+export const deleteQuiz = (_id) => {
+  return quizSchema.findByIdAndDelete(_id);
+};
+
 // find all quizes
 export const getAllQuizesList = (instructorId) => {
   return quizSchema.find({ instructorId });
