@@ -107,7 +107,10 @@ quizRouter.get("/quiz/:courseId", async (req, res) => {
 
     const quiz = await getQuizByCourseId(courseId);
 
-    buildSuccessResponse(res, quiz, "Quiz fetched successfully!");
+    // Filter quiz with status 'Published'
+    const publishedQuiz = quiz.filter((quiz) => quiz.status === "Published");
+
+    buildSuccessResponse(res, publishedQuiz, "Quiz fetched successfully!");
   } catch (error) {
     console.error("Error while fetching quiz:", error);
     return buildErrorResponse(res, "Error while fetching quiz!", 500);

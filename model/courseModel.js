@@ -12,9 +12,16 @@ export const updateCourse = (updatedObject) => {
   });
 };
 
-//  DELETE
+// DELETE Course
+// export const deleteCourse = (_id) => {
+//   return courseSchema.findByIdAndDelete(_id);
+// };
 export const deleteCourse = (_id) => {
-  return courseSchema.findByIdAndDelete(_id);
+  return courseSchema.findByIdAndUpdate(
+    _id,
+    { isPublished: false },
+    { new: true }
+  );
 };
 
 // DELETE LECTURE

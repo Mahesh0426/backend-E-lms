@@ -19,7 +19,7 @@ const OrderSchema = new mongoose.Schema({
   coursePricing: { type: String, required: true },
 });
 
-// Ensure unique order per user and course
-OrderSchema.index({ userId: 1, courseId: 1 }, { unique: true });
+// // Ensure unique order per user and course
+// OrderSchema.index({ userId: 1, courseId: 1 }, { unique: true });
 
 export default mongoose.model("Order", OrderSchema);

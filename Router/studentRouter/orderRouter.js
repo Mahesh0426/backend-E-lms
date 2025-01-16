@@ -14,22 +14,112 @@ import {
 const orderRouter = express.Router();
 
 //  POST | create  payment
+// orderRouter.post("/create", async (req, res) => {
+//   try {
+//     const orderDetails = req.body;
+
+//     // Check if the order already exists for the user and course
+//     const existingOrder = await Order.findOne({
+//       userId: orderDetails.userId,
+//       courseId: orderDetails.courseId,
+//       orderStatus: orderDetails.orderStatus,
+//     });
+
+//     if (existingOrder) {
+//       console.log("Order already exists for this user and course.");
+//       return buildErrorResponse(res, "Duplicate order. Order already exists.");
+//     }
+
+//     const createPaymentJson = createPaypalPaymentConfig(
+//       orderDetails.courseTitle,
+//       orderDetails.courseId,
+//       orderDetails.coursePricing
+//     );
+
+//     // Create PayPal payment
+//     paypal.payment.create(createPaymentJson, async (error, paymentInfo) => {
+//       if (error) {
+//         console.error("PayPal payment creation error:", error);
+//         return buildErrorResponse(res, "Error creating PayPal payment.");
+//       }
+
+//       // Create and save a new order record
+//       const newlyCreatedCourseOrder = new Order(orderDetails);
+
+//       await newlyCreatedCourseOrder.save();
+
+//       // Get approval URL from PayPal to redirect user
+//       const approveUrl = paymentInfo.links.find(
+//         (link) => link.rel === "approval_url"
+//       ).href;
+
+//       buildSuccessResponse(
+//         res,
+//         { approveUrl, orderId: newlyCreatedCourseOrder._id },
+//         "Order created successfully!"
+//       );
+//     });
+//   } catch (error) {
+//     console.error("Unexpected error in createOrder:", error);
+//     buildErrorResponse(res, "Error creating order.");
+//   }
+// });
 orderRouter.post("/create", async (req, res) => {
   try {
     const orderDetails = req.body;
 
-    // Check if the order already exists for the user and course
+    // Check if an order exists for the user and course
     const existingOrder = await Order.findOne({
       userId: orderDetails.userId,
       courseId: orderDetails.courseId,
-      orderStatus: orderDetails.orderStatus,
     });
 
     if (existingOrder) {
-      console.log("Order already exists for this user and course.");
-      return buildErrorResponse(res, "Duplicate order. Order already exists.");
+      if (existingOrder.orderStatus === "confirmed") {
+        console.log("Order is already confirmed for this user and course.");
+        return buildErrorResponse(
+          res,
+          "You cannot reorder this course as the order is already confirmed."
+        );
+      } else if (existingOrder.orderStatus === "pending") {
+        // Update the existing pending order
+        const updatedOrder = await Order.findByIdAndUpdate(
+          existingOrder._id,
+          { ...orderDetails },
+          { new: true } // Return the updated document
+        );
+
+        const createPaymentJson = createPaypalPaymentConfig(
+          orderDetails.courseTitle,
+          orderDetails.courseId,
+          orderDetails.coursePricing
+        );
+
+        // Create PayPal payment
+        return paypal.payment.create(
+          createPaymentJson,
+          async (error, paymentInfo) => {
+            if (error) {
+              console.error("PayPal payment creation error:", error);
+              return buildErrorResponse(res, "Error creating PayPal payment.");
+            }
+
+            // Get approval URL from PayPal to redirect user
+            const approveUrl = paymentInfo.links.find(
+              (link) => link.rel === "approval_url"
+            ).href;
+
+            return buildSuccessResponse(
+              res,
+              { approveUrl, orderId: updatedOrder._id },
+              "Order updated successfully!"
+            );
+          }
+        );
+      }
     }
 
+    // No existing order, proceed to create a new one
     const createPaymentJson = createPaypalPaymentConfig(
       orderDetails.courseTitle,
       orderDetails.courseId,

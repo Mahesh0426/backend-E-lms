@@ -112,7 +112,16 @@ assignmmentRouter.get("/assignment/:courseId", async (req, res) => {
 
     const assignment = await getAssignmentByCourseId(courseId);
 
-    buildSuccessResponse(res, assignment, "Quiz fetched successfully!");
+    // Filter Assignment with status 'Published'
+    const publishedAssignment = assignment.filter(
+      (assignment) => assignment.status === "Published"
+    );
+
+    buildSuccessResponse(
+      res,
+      publishedAssignment,
+      "Quiz fetched successfully!"
+    );
   } catch (error) {
     console.error("Error while fetching quiz:", error);
     return buildErrorResponse(res, "Error while fetching quiz!", 500);
