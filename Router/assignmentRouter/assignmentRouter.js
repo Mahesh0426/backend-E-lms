@@ -7,6 +7,7 @@ import {
   createAssignment,
   createAssignmentSubmission,
   deleteAssignment,
+  deleteSubmission,
   findSubmissionByIds,
   getAllAssignmentList,
   getAllSubmittedAssignmentList,
@@ -288,6 +289,30 @@ assignmmentRouter.patch(
     } catch (error) {
       console.error("Error while editing score:", error);
       buildErrorResponse(res, "Error while saving submission");
+    }
+  }
+);
+
+//delete assignment  | DELETE | for tutor
+assignmmentRouter.delete(
+  "/delete-submission/:submissionId",
+  async (req, res) => {
+    try {
+      const { submissionId } = req.params;
+
+      // Find the submission by assignmentId and studentId
+      const deletedSubmission = await deleteSubmission(submissionId);
+
+      deletedSubmission?._id
+        ? buildSuccessResponse(
+            res,
+            deletedSubmission,
+            "submission deleted successfully!"
+          )
+        : buildErrorResponse(res, "submission could not be deleted!");
+    } catch (error) {
+      console.error("Error while deleting submission:", error);
+      buildErrorResponse(res, "Error while deleting submission");
     }
   }
 );

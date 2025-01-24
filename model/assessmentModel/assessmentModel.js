@@ -83,3 +83,8 @@ export const findSubmissionByIds = (assignmentId, studentId) => {
 export const saveSubmission = (submission) => {
   return assignmentSubmissionSchema(submission).save();
 };
+
+//delete submission by assignmentId and studentId
+export const deleteSubmission = (_id) => {
+  return assignmentSubmissionSchema.findOneAndDelete({ _id });
+};

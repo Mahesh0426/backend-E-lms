@@ -5,7 +5,6 @@ import {
 } from "../../utility/paymentHelper.js";
 import paypal from "../../config/payPalConfig.js";
 import Order from "../../Schema/studentSchema/orderSchema.js";
-import Course from "../../Schema/courseSchema.js";
 import {
   buildErrorResponse,
   buildSuccessResponse,
@@ -64,6 +63,7 @@ const orderRouter = express.Router();
 //     buildErrorResponse(res, "Error creating order.");
 //   }
 // });
+
 orderRouter.post("/create", async (req, res) => {
   try {
     const orderDetails = req.body;

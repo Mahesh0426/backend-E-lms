@@ -1,7 +1,7 @@
 // @ts-nocheck
 import bcrypt from "bcryptjs";
 
-const salt = 15;
+const salt = 10;
 
 //hashing passwords
 export const hashPassword = (plainPassword) => {

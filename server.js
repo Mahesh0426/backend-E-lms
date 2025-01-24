@@ -5,7 +5,6 @@ import { connectToMongoDb } from "./config/dbConfig.js";
 import userRouter from "./Router/useRouter.js";
 import uploadRouter from "./Router/uploadRouter.js";
 import courseRouter from "./Router/courseRouter.js";
-
 import courseProgressRouter from "./Router/studentRouter/courseProgressRouter.js";
 import myCourseRouter from "./Router/studentRouter/myCoursesRouter.js";
 import orderRouter from "./Router/studentRouter/orderRouter.js";
