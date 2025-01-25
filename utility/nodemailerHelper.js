@@ -24,7 +24,7 @@ export const sendResetPasswordLinkEmail = (user, resetUrl) => {
   const { userEmail, userName } = user;
 
   const emailFormat = {
-    from: `gyanX<${process.env.SMTP_USER}>`,
+    from: `gyanX<${process.env.SENDER_MAIL}>`,
     to: userEmail,
     subject: "Password Reset",
     html: `

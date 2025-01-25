@@ -9,6 +9,7 @@ import {
   buildErrorResponse,
   buildSuccessResponse,
 } from "../../utility/reponseHelper.js";
+import Course from "../../Schema/courseSchema.js";
 
 const orderRouter = express.Router();
 
