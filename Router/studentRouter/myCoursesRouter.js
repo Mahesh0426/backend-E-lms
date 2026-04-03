@@ -1,5 +1,6 @@
 import express from "express";
-import * as tf from "@tensorflow/tfjs-node";
+import * as tf from "@tensorflow/tfjs";
+
 import { findCourseById } from "../../model/myCourseModel.js";
 import {
   buildErrorResponse,
@@ -27,7 +28,7 @@ myCourseRouter.get("/:studentId", authMiddleware, async (req, res) => {
       ? buildSuccessResponse(
           res,
           myCourses.courses,
-          "Your courses fetched successfully"
+          "Your courses fetched successfully",
         )
       : buildErrorResponse(res, "No courses found for this student.");
   } catch (error) {
@@ -56,16 +57,16 @@ const vectorizeData = (user, course) => {
 
   // Combine all unique attributes from both user and course into a unified set
   const allAttributes = Array.from(
-    new Set([...userFeatures, ...courseFeatures])
+    new Set([...userFeatures, ...courseFeatures]),
   );
 
   // Create a vector for the user by marking 1 for matching attributes and 0 for non-matching
   const userVector = allAttributes.map((attr) =>
-    userFeatures.includes(attr) ? 1 : 0
+    userFeatures.includes(attr) ? 1 : 0,
   );
   // Create a vector for the course using the same logic
   const courseVector = allAttributes.map((attr) =>
-    courseFeatures.includes(attr) ? 1 : 0
+    courseFeatures.includes(attr) ? 1 : 0,
   );
 
   return { userVector, courseVector };
@@ -141,10 +142,10 @@ myCourseRouter.get("/recommendations/:userId", async (req, res) => {
                 user.primaryInterests
                   .split(", ")
                   .map((interest) =>
-                    interest.replace(/\s+/g, "-").toLowerCase()
+                    interest.replace(/\s+/g, "-").toLowerCase(),
                   )
                   .join("|"),
-                "i"
+                "i",
               ),
             },
           },
@@ -155,7 +156,7 @@ myCourseRouter.get("/recommendations/:userId", async (req, res) => {
                   .split(", ")
                   .map((interest) => interest.toLowerCase())
                   .join("|"),
-                "i"
+                "i",
               ),
             },
           },
@@ -174,7 +175,7 @@ myCourseRouter.get("/recommendations/:userId", async (req, res) => {
       });
 
       const sortedRecommendations = recommendations.sort(
-        (a, b) => b.similarity - a.similarity
+        (a, b) => b.similarity - a.similarity,
       );
 
       return res.status(200).json({
@@ -189,7 +190,7 @@ myCourseRouter.get("/recommendations/:userId", async (req, res) => {
     if (quizSubmissions.length > 0 || assignmentSubmissions.length > 0) {
       const quizScores = quizSubmissions.map((quiz) => quiz.obtainedMarks);
       const assignmentScores = assignmentSubmissions.map(
-        (assignment) => assignment.score
+        (assignment) => assignment.score,
       );
 
       const averageQuizScore =
@@ -227,7 +228,7 @@ myCourseRouter.get("/recommendations/:userId", async (req, res) => {
           .split(", ")
           .map((interest) => interest.replace(/\s+/g, "-").toLowerCase())
           .join("|"),
-        "i"
+        "i",
       );
 
       // Merge topCategory + user interests in an $or array

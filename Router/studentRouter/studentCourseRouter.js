@@ -28,6 +28,7 @@ studentCourseRouter.get("/get", async (req, res) => {
     const sortParam = buildSortParam(sortBy);
 
     const courseList = await getStudentCourses({ filters, sortParam });
+    console.log("courseList", courseList);
 
     buildSuccessResponse(res, courseList, "Courses fetched successfully");
   } catch (error) {
@@ -45,7 +46,7 @@ studentCourseRouter.get("/:id", async (req, res) => {
       ? buildSuccessResponse(
           res,
           courseDetails,
-          "Course details fetched successfully"
+          "Course details fetched successfully",
         )
       : buildErrorResponse(res, "Course not found");
   } catch (error) {

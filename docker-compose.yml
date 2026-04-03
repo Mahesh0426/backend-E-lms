@@ -1,0 +1,26 @@
+services:
+  # ── Backend (Node.js) ──
+  server:
+    build: .
+    container_name: gyanx-server
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    # environment:
+    #   - PORT=${PORT}
+    #   - CLIENT_ROOT_URL=${CLIENT_ROOT_URL}
+    #   - DB_CONNECT_URL=${DB_CONNECT_URL}
+    #   - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}
+    #   - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+    #   - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
+    #   - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
+    #   - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+    #   - PAYPAL_CLIENT_ID=${PAYPAL_CLIENT_ID}
+    #   - PAYPAL_CLIENT_SECRET=${PAYPAL_CLIENT_SECRET}
+    #   - SMTP_HOST=${SMTP_HOST}
+    #   - SMTP_PORT=${SMTP_PORT}
+    #   - SMTP_USER=${SMTP_USER}
+    #   - SMTP_PASS=${SMTP_PASS}
+    #   - SENDER_MAIL=${SENDER_MAIL}

@@ -1,4 +1,5 @@
 import { v2 as cloudinary } from "cloudinary";
+import "dotenv/config";
 
 // Ensure the required environment variables are set
 if (
@@ -7,7 +8,7 @@ if (
   !process.env.CLOUDINARY_API_SECRET
 ) {
   throw new Error(
-    "Cloudinary configuration missing. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET in your environment."
+    "Cloudinary configuration missing. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET in your environment.",
   );
 }
 
@@ -77,7 +78,7 @@ const deleteMediaFromCloudinary = async (publicId) => {
       return true;
     } else if (result.result === "not found") {
       console.warn(
-        `Media with publicId ${publicId} was not found in Cloudinary`
+        `Media with publicId ${publicId} was not found in Cloudinary`,
       );
       return false;
     } else {
