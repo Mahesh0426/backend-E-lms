@@ -2,6 +2,7 @@ services:
   # ── Backend (Node.js) ──
   server:
     build: .
+    image: gyanx-server
     container_name: gyanx-server
     restart: unless-stopped
     ports:
