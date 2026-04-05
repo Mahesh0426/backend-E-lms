@@ -37,7 +37,7 @@ app.use(express.json());
 
 // check  route
 app.get("/", (req, res) => {
-  res.send(" hello node JS from server");
+  res.send(" Server health is good!!😊");
 });
 
 // connect to mongo
