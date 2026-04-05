@@ -36,48 +36,48 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           envs: CLIENT_ROOT_URL,DB_CONNECT_URL,JWT_ACCESS_SECRET,JWT_REFRESH_SECRET,CLOUDINARY_CLOUD_NAME,CLOUDINARY_API_KEY,CLOUDINARY_API_SECRET,PAYPAL_CLIENT_ID,PAYPAL_CLIENT_SECRET,SMTP_HOST,SMTP_PORT,SMTP_USER,SMTP_PASS,SENDER_MAIL
           script: |
-            set -e  # ← Stop immediately if any command fails
+            set -e          # ← Stop immediately if any command fails
 
+            # Fix git safe directory issue
             git config --global --add safe.directory /home/ubuntu/gyanx/backend-E-lms
 
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
             echo "🚀 Deploying Server..."
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-            # ── Pull latest code (safe, no merge conflicts) ──
+            # ── Pull latest code ──
             cd /home/ubuntu/gyanx/backend-E-lms
-
-
             git fetch origin main
             git reset --hard origin/main
             echo "✅ Code updated"
 
-            # ── Go to umbrella folder where docker-compose.yml lives ──
+            # ── Go to umbrella folder ──
             cd /home/ubuntu/gyanx
 
-            # ── Recreate .env ──
-            echo "CLIENT_ROOT_URL=${CLIENT_ROOT_URL}" >> .env
-            echo "DB_CONNECT_URL=${DB_CONNECT_URL}" >> .env
-            echo "JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}" >> .env
-            echo "JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}" >> .env
-            echo "CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}" >> .env
-            echo "CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}" >> .env
-            echo "CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}" >> .env
-            echo "PAYPAL_CLIENT_ID=${PAYPAL_CLIENT_ID}" >> .env
-            echo "PAYPAL_CLIENT_SECRET=${PAYPAL_CLIENT_SECRET}" >> .env
-            echo "SMTP_HOST=${SMTP_HOST}" >> .env
-            echo "SMTP_PORT=${SMTP_PORT}" >> .env
-            echo "SMTP_USER=${SMTP_USER}" >> .env
-            echo "SMTP_PASS=${SMTP_PASS}" >> .env
-            echo "SENDER_MAIL=${SENDER_MAIL}" >> .env
-            echo "✅ .env created"
+            # ── Overwrite .env.server fresh every deploy ──
+            cat > .env.server << EOF
+            CLIENT_ROOT_URL=${CLIENT_ROOT_URL}
+            DB_CONNECT_URL=${DB_CONNECT_URL}
+            JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}
+            JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+            CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
+            CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
+            CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+            PAYPAL_CLIENT_ID=${PAYPAL_CLIENT_ID}
+            PAYPAL_CLIENT_SECRET=${PAYPAL_CLIENT_SECRET}
+            SMTP_HOST=${SMTP_HOST}
+            SMTP_PORT=${SMTP_PORT}
+            SMTP_USER=${SMTP_USER}
+            SMTP_PASS=${SMTP_PASS}
+            SENDER_MAIL=${SENDER_MAIL}
+            EOF
+            echo "✅ .env.server created"
 
-            # ── Rebuild ONLY the server, don't touch client ──
-            sudo docker compose build server       # "server" = service name in docker-compose.yml
+            # ── Rebuild ONLY server ──
+            sudo docker compose build server
             sudo docker compose up -d --no-deps server
             echo "✅ Server container restarted"
 
-            # ── Clean up old dangling images ──
             sudo docker image prune -f
             echo "✅ Cleanup done"
 
