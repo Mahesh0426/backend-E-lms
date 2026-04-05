@@ -46,7 +46,7 @@ jobs:
 
             # ── Pull latest code (safe, no merge conflicts) ──
             cd /home/ubuntu/gyanx/backend-E-lms
-            sudo chown -R ubuntu:ubuntu .git
+
 
             git fetch origin main
             git reset --hard origin/main
