@@ -46,7 +46,10 @@ jobs:
 
             # ── Pull latest code (safe, no merge conflicts) ──
             cd /home/ubuntu/gyanx/backend-E-lms
-            git pull origin main
+            sudo chown -R ubuntu:ubuntu .git
+
+            git fetch origin main
+            git reset --hard origin/main
             echo "✅ Code updated"
 
             # ── Go to umbrella folder where docker-compose.yml lives ──
